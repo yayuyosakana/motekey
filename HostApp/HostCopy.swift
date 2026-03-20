@@ -1,5 +1,15 @@
 import Foundation
 
+struct S002ScenarioCopy {
+    let title: String
+    let messages: [S002MessageCopy]
+}
+
+struct S002MessageCopy {
+    let text: String
+    let isUserSide: Bool
+}
+
 enum HostCopy {
     enum Common {
         static let appTitle = "モテキー"
@@ -26,6 +36,51 @@ enum HostCopy {
         static let retry = "もう一度試す"
         static let errorFallback = "解析に失敗しました。時間を置いて再試行してください。"
         static let emptySummary = "入力なし（後で再登録可能）"
+
+        static let scenarios: [S002ScenarioCopy] = [
+            .init(title: "デート提案", messages: [
+                .init(text: "今夜、どこか外食いかない？", isUserSide: false),
+                .init(text: "いいよ！どこ行こうか", isUserSide: true),
+                .init(text: "決めていいよ！", isUserSide: false)
+            ]),
+            .init(title: "愚痴・共感", messages: [
+                .init(text: "ちょっと悲しいことがあって、聞いてほしい", isUserSide: false)
+            ]),
+            .init(title: "仕事の愚痴", messages: [
+                .init(text: "今日も残業だった…もう疲れた", isUserSide: false),
+                .init(text: "お疲れ。大変だったね", isUserSide: true),
+                .init(text: "なんか頑張る気力もなくなってきた", isUserSide: false)
+            ]),
+            .init(title: "週末の予定", messages: [
+                .init(text: "今週末、何する？", isUserSide: false),
+                .init(text: "特に決めてないけど、どっか行く？", isUserSide: true),
+                .init(text: "うーん、家でのんびりでもいいかな", isUserSide: false)
+            ]),
+            .init(title: "ちょっとした喧嘩後", messages: [
+                .init(text: "さっきはごめんね。言いすぎた", isUserSide: false)
+            ]),
+            .init(title: "不安な気持ち", messages: [
+                .init(text: "最近、私のこと好き？", isUserSide: false)
+            ]),
+            .init(title: "体調不良", messages: [
+                .init(text: "なんか頭痛がひどくて…", isUserSide: false),
+                .init(text: "大丈夫？何かできることある？", isUserSide: true),
+                .init(text: "大丈夫だよ、心配してくれてありがと", isUserSide: false)
+            ]),
+            .init(title: "嬉しい報告", messages: [
+                .init(text: "やった！仕事でめっちゃ褒められた！", isUserSide: false)
+            ]),
+            .init(title: "悩み相談", messages: [
+                .init(text: "友達と最近うまくいってなくて…", isUserSide: false),
+                .init(text: "何かあったの？", isUserSide: true),
+                .init(text: "向こうから急に冷たくなった気がして、理由もわからなくて不安", isUserSide: false)
+            ]),
+            .init(title: "趣味・買い物報告", messages: [
+                .init(text: "かわいい服見つけたんだけど、ちょっと高くて迷ってる", isUserSide: false),
+                .init(text: "いくらくらい？", isUserSide: true),
+                .init(text: "1万5千円…。似合うと思う？写真送る", isUserSide: false)
+            ])
+        ]
     }
 
     enum S003 {

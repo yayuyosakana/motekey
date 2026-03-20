@@ -15,50 +15,14 @@ enum BubbleSide {
     case trailing
 }
 
-private let textHabitQuestions: [TextHabitQuestion] = [
-    .init(scenario: "デート提案", messages: [
-        .init(text: "今夜、どこか外食いかない？", side: .leading),
-        .init(text: "いいよ！どこ行こうか", side: .trailing),
-        .init(text: "決めていいよ！", side: .leading)
-    ]),
-    .init(scenario: "愚痴・共感", messages: [
-        .init(text: "ちょっと悲しいことがあって、聞いてほしい", side: .leading)
-    ]),
-    .init(scenario: "仕事の愚痴", messages: [
-        .init(text: "今日も残業だった…もう疲れた", side: .leading),
-        .init(text: "お疲れ。大変だったね", side: .trailing),
-        .init(text: "なんか頑張る気力もなくなってきた", side: .leading)
-    ]),
-    .init(scenario: "週末の予定", messages: [
-        .init(text: "今週末、何する？", side: .leading),
-        .init(text: "特に決めてないけど、どっか行く？", side: .trailing),
-        .init(text: "うーん、家でのんびりでもいいかな", side: .leading)
-    ]),
-    .init(scenario: "ちょっとした喧嘩後", messages: [
-        .init(text: "さっきはごめんね。言いすぎた", side: .leading)
-    ]),
-    .init(scenario: "不安な気持ち", messages: [
-        .init(text: "最近、私のこと好き？", side: .leading)
-    ]),
-    .init(scenario: "体調不良", messages: [
-        .init(text: "なんか頭痛がひどくて…", side: .leading),
-        .init(text: "大丈夫？何かできることある？", side: .trailing),
-        .init(text: "大丈夫だよ、心配してくれてありがと", side: .leading)
-    ]),
-    .init(scenario: "嬉しい報告", messages: [
-        .init(text: "やった！仕事でめっちゃ褒められた！", side: .leading)
-    ]),
-    .init(scenario: "悩み相談", messages: [
-        .init(text: "友達と最近うまくいってなくて…", side: .leading),
-        .init(text: "何かあったの？", side: .trailing),
-        .init(text: "向こうから急に冷たくなった気がして、理由もわからなくて不安", side: .leading)
-    ]),
-    .init(scenario: "趣味・買い物報告", messages: [
-        .init(text: "かわいい服見つけたんだけど、ちょっと高くて迷ってる", side: .leading),
-        .init(text: "いくらくらい？", side: .trailing),
-        .init(text: "1万5千円…。似合うと思う？写真送る", side: .leading)
-    ])
-]
+private let textHabitQuestions: [TextHabitQuestion] = HostCopy.S002.scenarios.map { scenario in
+        TextHabitQuestion(
+            scenario: scenario.title,
+            messages: scenario.messages.map { message in
+                ChatMessage(text: message.text, side: message.isUserSide ? .trailing : .leading)
+            }
+        )
+}
 
 struct S002TextHabitFlowView: View {
     @EnvironmentObject private var state: HostAppState
@@ -78,11 +42,11 @@ struct S002TextHabitFlowView: View {
         let question = textHabitQuestions[questionIndex]
 
         VStack(alignment: .leading, spacing: 16) {
-            Text("\(questionIndex + 1)/10 シチュエーション")
+            Text("\(questionIndex + 1)/\(textHabitQuestions.count) シチュエーション")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
-            ProgressView(value: Double(questionIndex + 1), total: 10)
+            ProgressView(value: Double(questionIndex + 1), total: Double(textHabitQuestions.count))
                 .tint(.pink)
 
             Text(question.scenario)
