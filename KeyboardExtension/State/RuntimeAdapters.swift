@@ -1,4 +1,14 @@
 import Foundation
+import MoteKeyShared
+
+private enum LegacyProfileKeys {
+    static let tone = "textHabit.tone"
+    static let endingStyle = "textHabit.endingStyle"
+    static let emojiStyle = "textHabit.emojiStyle"
+    static let partnerName = "relation.partnerName"
+    static let relationSummary = "relation.summary"
+    static let cautionNotes = "relation.cautionNotes"
+}
 
 struct FileLatestFrameLoader: LatestFrameLoading {
     let frameURL: URL
@@ -62,21 +72,46 @@ struct AppGroupProfileStore: ProfileStore {
     }
 
     func loadTextStyleProfile() -> TextStyleProfile {
-        let tone = defaults.string(forKey: "textHabit.tone") ?? "neutral"
-        let endingStyle = defaults.string(forKey: "textHabit.endingStyle") ?? "casual"
-        let emojiStyle = defaults.string(forKey: "textHabit.emojiStyle") ?? "minimal"
+        if let data = defaults.data(forKey: AppGroupKeys.textStyleProfileData),
+           let sharedProfile = try? JSONDecoder().decode(MoteKeyShared.TextStyleProfile.self, from: data) {
+            let details = sharedProfile.tone_profile.details
+            let tone = nonEmpty(sharedProfile.tone_profile.summary, fallback: "neutral")
+            let endingStyle = nonEmpty(details.ending_patterns, fallback: "casual")
+            let emojiStyle = nonEmpty(details.emoji_usage, fallback: "minimal")
+            return TextStyleProfile(tone: tone, endingStyle: endingStyle, emojiStyle: emojiStyle)
+        }
+
+        let tone = defaults.string(forKey: LegacyProfileKeys.tone)
+            ?? defaults.string(forKey: AppGroupKeys.textStyleSummary)
+            ?? "neutral"
+        let endingStyle = defaults.string(forKey: LegacyProfileKeys.endingStyle) ?? "casual"
+        let emojiStyle = defaults.string(forKey: LegacyProfileKeys.emojiStyle) ?? "minimal"
         return TextStyleProfile(tone: tone, endingStyle: endingStyle, emojiStyle: emojiStyle)
     }
 
     func loadRelationProfile() -> RelationProfile {
-        let partnerName = defaults.string(forKey: "relation.partnerName") ?? "パートナー"
-        let relationshipSummary = defaults.string(forKey: "relation.summary") ?? ""
-        let cautionNotes = defaults.string(forKey: "relation.cautionNotes") ?? ""
+        if let data = defaults.data(forKey: AppGroupKeys.relationProfileData),
+           let sharedProfile = try? JSONDecoder().decode(MoteKeyShared.RelationProfile.self, from: data) {
+            return RelationProfile(
+                partnerName: nonEmpty(sharedProfile.nickname, fallback: "パートナー"),
+                relationshipSummary: sharedProfile.relationshipType,
+                cautionNotes: sharedProfile.cautionNote
+            )
+        }
+
+        let partnerName = defaults.string(forKey: LegacyProfileKeys.partnerName) ?? "パートナー"
+        let relationshipSummary = defaults.string(forKey: LegacyProfileKeys.relationSummary) ?? ""
+        let cautionNotes = defaults.string(forKey: LegacyProfileKeys.cautionNotes) ?? ""
         return RelationProfile(
             partnerName: partnerName,
             relationshipSummary: relationshipSummary,
             cautionNotes: cautionNotes
         )
+    }
+
+    private func nonEmpty(_ value: String, fallback: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? fallback : trimmed
     }
 }
 
@@ -100,8 +135,8 @@ struct AppGroupPermissionChecker: PermissionChecking {
     }
 
     func currentPermissionIssue() -> PermissionIssue {
-        let hasFullAccess = defaults.object(forKey: "permission.fullAccessGranted") as? Bool ?? true
-        let hasScreenRecording = defaults.object(forKey: "permission.screenRecordingGranted") as? Bool ?? true
+        let hasFullAccess = defaults.object(forKey: AppGroupKeys.permissionFullAccessGranted) as? Bool ?? true
+        let hasScreenRecording = defaults.object(forKey: AppGroupKeys.permissionScreenRecordingGranted) as? Bool ?? true
 
         if !hasFullAccess {
             return .fullAccessDenied

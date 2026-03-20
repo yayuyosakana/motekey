@@ -26,7 +26,7 @@ let package = Package(
         ),
         .target(
             name: "MoteKeyHostAppCore",
-            dependencies: ["MoteKeyConfig"],
+            dependencies: ["MoteKeyConfig", "MoteKeyShared"],
             path: "HostApp",
             exclude: [
                 "HostRootView.swift",
@@ -42,7 +42,7 @@ let package = Package(
         ),
         .target(
             name: "MoteKeyKeyboardRuntimeCore",
-            dependencies: ["MoteKeyConfig"],
+            dependencies: ["MoteKeyConfig", "MoteKeyShared"],
             path: "KeyboardExtension",
             exclude: [
                 "UI",
@@ -63,6 +63,16 @@ let package = Package(
             name: "MoteKeySharedTests",
             dependencies: ["MoteKeyShared"],
             path: "Tests/MoteKeySharedTests"
+        ),
+        .testTarget(
+            name: "MoteKeyHostAppCoreTests",
+            dependencies: ["MoteKeyHostAppCore", "MoteKeyShared"],
+            path: "Tests/MoteKeyHostAppCoreTests"
+        ),
+        .testTarget(
+            name: "MoteKeyKeyboardRuntimeCoreTests",
+            dependencies: ["MoteKeyKeyboardRuntimeCore", "MoteKeyShared"],
+            path: "Tests/MoteKeyKeyboardRuntimeCoreTests"
         )
     ]
 )

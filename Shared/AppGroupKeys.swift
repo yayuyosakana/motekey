@@ -1,22 +1,22 @@
 import Foundation
 
-enum AppGroupKeys {
-    static let suiteName = "group.com.motekey.shared"
+public enum AppGroupKeys {
+    public static let suiteName = "group.com.motekey.shared"
 
     // テキストハビット
-    static let textStyleRegistered = "textStyleRegistered"
-    static let textStyleSummary = "textStyleSummary"
-    static let textStyleProfileData = "textStyleProfileData"
+    public static let textStyleRegistered = "textStyleRegistered"
+    public static let textStyleSummary = "textStyleSummary"
+    public static let textStyleProfileData = "textStyleProfileData"
 
     // リレーション
-    static let relationRegistered = "relationRegistered"
-    static let relationProfileData = "relationProfileData"
+    public static let relationRegistered = "relationRegistered"
+    public static let relationProfileData = "relationProfileData"
 
     // セットアップと権限
-    static let setupConfigured = "setupConfigured"
-    static let permissionFullAccessGranted = "permission.fullAccessGranted"
-    static let permissionScreenRecordingGranted = "permission.screenRecordingGranted"
+    public static let setupConfigured = "setupConfigured"
+    public static let permissionFullAccessGranted = "permission.fullAccessGranted"
+    public static let permissionScreenRecordingGranted = "permission.screenRecordingGranted"
 
     // Broadcast Extension で上書きする最新1フレーム
-    static let latestFrameFileName = "latest_frame.jpg"
+    public static let latestFrameFileName = "latest_frame.jpg"
 }
