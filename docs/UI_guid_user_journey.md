@@ -1578,14 +1578,15 @@ struct LoadingVeilView: View {
 ```swift
 // AppState.swift
 // ※ api-design.md の ④ 返信文生成 に準拠
-// 入力: チャット文脈 + Q1〜Q3回答 + テキストハビット + リレーション情報 + SP
+// 入力: チャット文脈 + Q1〜Q3回答 + テキストハビット + リレーション情報 + today_date + SP
 func requestAIGeneration() async {
     do {
         let candidates = try await GeminiService.shared.generateReplies(
             chatContext: chatContext,          // ② で抽出した文脈（手入力時はユーザー入力）
             userResponses: askUserAnswers,     // ③ Q1〜Q3の選択結果 [index: value]
             textStyleProfile: loadTextStyleProfile(),
-            relationProfile: loadRelationProfile()
+            relationProfile: loadRelationProfile(),
+            todayDate: Date.now
         )
         await MainActor.run {
             generatedCandidates = candidates  // 2〜5個のチップ
@@ -2150,9 +2151,7 @@ extension AppState {
 
             // ③ チャット文脈をもとに Q1〜Q3 を一括生成（1回のAPI呼び出し）
             let questions = try await GeminiService.shared.generateAskUserQuestions(
-                chatContext: extractedContext,
-                textStyleProfile: loadTextStyleProfile(),
-                relationProfile: loadRelationProfile()
+                chatContext: extractedContext
             )
 
             await MainActor.run {
