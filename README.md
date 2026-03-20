@@ -1,15 +1,29 @@
 # pico-banana
 ハッカソンチーム: picoばな奈
 
-## Phase3 Bootstrap
+## Phase6 Bootstrap
 
-このワークツリーでは `Package.swift` を基準に、以下4モジュールのビルド健全性を確認できます。
+このリポジトリでは、`Package.swift` を基準に以下4モジュールの基盤健全性を確認できます。
 
 - `MoteKeyConfig`
 - `MoteKeyShared`
 - `MoteKeyHostAppCore`（画面ロジック除く）
 - `MoteKeyKeyboardRuntimeCore`（UI層除く）
 
+## Quick Start
+
 ```bash
-swift test
+make bootstrap-check
 ```
+
+上記コマンドは `scripts/bootstrap_check.sh` を呼び出し、基盤向けの再現可能な検証を実行します。
+
+## 手動実行
+
+```bash
+./scripts/bootstrap_check.sh
+```
+
+## CI
+
+GitHub Actions (`.github/workflows/bootstrap.yml`) でも同一コマンドを実行します。

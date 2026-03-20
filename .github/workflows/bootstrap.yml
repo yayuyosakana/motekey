@@ -1,0 +1,17 @@
+name: Bootstrap Checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  bootstrap:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run bootstrap checks
+        run: ./scripts/bootstrap_check.sh
