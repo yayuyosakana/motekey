@@ -1,0 +1,17 @@
+# Secrets - コミット禁止
+Config/Secrets.xcconfig
+
+# Xcode
+*.xcuserstate
+xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+.build/
+*.o
+*.d
+
+# macOS
+.DS_Store
+
+# Swift Package Manager
+.swiftpm/
