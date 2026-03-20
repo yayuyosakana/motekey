@@ -1,4 +1,5 @@
 import Foundation
+import MoteKeyConfig
 
 final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuestionGenerating, ReplyGenerating {
     private let session: URLSession

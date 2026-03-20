@@ -1,4 +1,5 @@
 import Foundation
+import MoteKeyConfig
 
 struct GeminiTextHabitAnalyzer {
     enum AnalysisError: LocalizedError {
