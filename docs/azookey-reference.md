@@ -355,13 +355,13 @@ var body: some View {
 ```swift
 // MainApp側で保存
 let shared = UserDefaults(suiteName: "group.com.motekey.shared")!
-shared.set(textHabitData, forKey: "textHabit")
-shared.set(relationData, forKey: "relation")
+shared.set(textStyleProfileData, forKey: "textStyleProfileData") // JSON(Data)
+shared.set(relationProfileData, forKey: "relationProfileData")   // JSON(Data)
 
 // Keyboard Extension側で読み取り
 let shared = UserDefaults(suiteName: "group.com.motekey.shared")!
-let textHabit = shared.string(forKey: "textHabit")
-let relation = shared.string(forKey: "relation")
+let textStyleProfileData = shared.data(forKey: "textStyleProfileData")
+let relationProfileData = shared.data(forKey: "relationProfileData")
 ```
 
 ファイル共有（画面フレーム画像用）:

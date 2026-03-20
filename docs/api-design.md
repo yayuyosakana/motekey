@@ -22,6 +22,8 @@
 | # | 呼び出し名                   | API種別             | 入力                                                                             | 出力                                    | 備考                                                           |
 |---|------------------------------|---------------------|----------------------------------------------------------------------------------|-----------------------------------------|----------------------------------------------------------------|
 | ② | 画面文脈抽出                 | Gemini Vision API   | Broadcast Extensionの最新1フレーム画像（JPEG）                                   | 構造化チャット文脈（話者区別付き）       | LINEのUI構造を認識し相手/自分の発言を区別。画像は送信後即破棄  |
+| ③ | アスクユーザーQ1〜Q3一括生成 | Gemini API          | チャット文脈                                                                     | 3問分の質問テキスト + 各3択（計9選択肢） | 1回の呼び出しで3問すべてを生成。分岐なし                      |
+| ④ | 返信文生成                   | Gemini API          | チャット文脈 + Q1〜Q3回答 + テキストハビット + リレーション情報 + today_date + システムプロンプト | 返信メッセージ（チップ形式で複数）       | 生成結果はステージバーおよび `全文表示` タブで確認する         |
 | ③ | アスクユーザーQ1〜Q3一括生成 | Gemini API          | チャット文脈                                                                     | 3問分の質問テキスト + 各3択（計9選択肢） | 1回の呼び出しで3問すべてを生成。分岐なし。質問中に `キーボード` タブへ切替時はフロー中断し、ローカル質問状態を破棄 |
 | ④ | 返信文生成                   | Gemini API          | チャット文脈 + Q1〜Q3回答 + テキストハビット + リレーション情報 + システムプロンプト | 返信メッセージ（チップ形式で複数）       | 生成結果はステージバーおよび `全文表示` タブで確認する（`全文表示` は確認/選択用途で送信面ではない） |
 
@@ -37,7 +39,7 @@
   │                    │◄─ JPEG (~150KB)─┤                   │                 │
   │                    │                  │                   │                 │
   │                    ├─────────── ② 画面文脈抽出 ─────────────────────────────►│
-  │                    │◄──────────── チャット文脈テキスト ──────────────────────┤
+  │                    │◄──────────── 構造化チャット文脈(JSON) ─────────────────┤
   │                    │  (画像データ破棄)                                      │
   │                    │                                                       │
   │                    ├─────────── ③ Q1〜Q3一括生成 ─────────────────────────►│
@@ -94,18 +96,119 @@
 | 500系          | サーバーエラー → 「一時的に利用できません」表示（必要に応じて手入力フォールバック） |
 | タイムアウト   | リトライボタン表示（再失敗時は手入力フォールバック）  |
 
-### 3.3 レスポンスフォーマット（想定）
+### 3.3 リクエストフォーマット（想定）
+
+#### ③ アスクユーザーQ1〜Q3一括生成のリクエスト
+
+```json
+{
+  "chat_context": {
+    "chat_detected": true,
+    "app": "LINE",
+    "messages": [
+      { "speaker": "partner", "text": "今日買い物行ける？", "date_label": "今日", "time": "18:10" }
+    ],
+    "last_speaker": "partner",
+    "last_message": "今日買い物行ける？"
+  }
+}
+```
+
+③は質問生成専用のため、入力は `chat_context` のみを送信する（`text_habit` / `relation` は送信しない）。
+
+#### ④ 返信文生成のリクエスト
+
+```json
+{
+  "chat_context": {
+    "chat_detected": true,
+    "app": "LINE",
+    "messages": [
+      { "speaker": "partner", "text": "今日買い物行ける？", "date_label": "今日", "time": "18:10" }
+    ],
+    "last_speaker": "partner",
+    "last_message": "今日買い物行ける？"
+  },
+  "user_responses": {
+    "0": "two_or_less",
+    "1": "on_the_way_home",
+    "2": "usual_brand"
+  },
+  "text_habit": {
+    "tone_profile": {
+      "summary": "やわらかく親しみやすい口調",
+      "rules": ["語尾は柔らかめにする"],
+      "details": {
+        "ending_patterns": "〜だよ/〜ね を使う",
+        "emoji_usage": "！を適度に使う",
+        "empathy_style": "相手の感情を先に受ける",
+        "suggestion_style": "断定しすぎない提案",
+        "message_length": "短文中心",
+        "colloquial_style": "口語寄り"
+      }
+    }
+  },
+  "relation": {
+    "nickname": "ゆい",
+    "relationshipType": "girlfriend",
+    "datingStartDate": "2023-05-14",
+    "marriageDate": null,
+    "birthdayMonth": 11,
+    "birthdayDay": 3,
+    "cautionNote": "返信が遅いと不安になりやすい"
+  },
+  "today_date": "2026-03-21"
+}
+```
+
+### 3.4 レスポンスフォーマット（想定）
 
 #### ② 画面文脈抽出のレスポンス
 
 ```json
 {
+  "chat_detected": true,
+  "app": "LINE",
   "messages": [
-    { "speaker": "partner", "text": "今日買い物行ける？" },
-    { "speaker": "partner", "text": "トイレットペーパーなくなりそう" },
-    { "speaker": "me", "text": "うーん" },
-    { "speaker": "partner", "text": "行けるの？行けないの？" }
-  ]
+    {
+      "speaker": "partner",
+      "text": "今日買い物行ける？",
+      "date_label": "今日",
+      "time": "18:10"
+    },
+    {
+      "speaker": "partner",
+      "text": "トイレットペーパーなくなりそう",
+      "date_label": "今日",
+      "time": "18:11"
+    },
+    {
+      "speaker": "me",
+      "text": "うーん",
+      "date_label": "今日",
+      "time": "18:12"
+    },
+    {
+      "speaker": "partner",
+      "text": "行けるの？行けないの？",
+      "date_label": "今日",
+      "time": "18:12"
+    }
+  ],
+  "last_speaker": "partner",
+  "last_message": "行けるの？行けないの？"
+}
+```
+
+会話が検出できない場合は `chat_detected: false` を返す。この場合 `messages` は空配列、`last_speaker` / `last_message` は `null` とする。
+
+```json
+{
+  "chat_detected": false,
+  "app": "unknown",
+  "messages": [],
+  "last_speaker": null,
+  "last_message": null
 }
 ```
 
@@ -123,19 +226,19 @@
       ]
     },
     {
-      "question": "どんなトーンで返したい？",
+      "question": "いつ買って帰れそうですか？",
       "options": [
-        { "label": "優しく丁寧に", "value": "gentle" },
-        { "label": "軽くカジュアルに", "value": "casual" },
-        { "label": "申し訳なさそうに", "value": "apologetic" }
+        { "label": "今日の帰りに", "value": "on_the_way_home" },
+        { "label": "明日以降に", "value": "tomorrow_or_later" },
+        { "label": "今すぐ行ける", "value": "right_now" }
       ]
     },
     {
-      "question": "補足で伝えたいことは？",
+      "question": "ブランドや種類（ダブル/シングル）の指定はありますか？",
       "options": [
-        { "label": "代わりの提案をする", "value": "alternative" },
-        { "label": "理由を説明する", "value": "explain" },
-        { "label": "特にない", "value": "none" }
+        { "label": "いつものがある", "value": "usual_brand" },
+        { "label": "指定なし", "value": "no_preference" },
+        { "label": "安ければ何でも", "value": "cheapest" }
       ]
     }
   ]
@@ -156,7 +259,35 @@
 }
 ```
 
-### 3.4 APIキーの用途別割り当て
+`chips` 配列は2〜5件（最大5件）とする。
+
+### 3.5 スキーマバリデーション規約（実装用）
+
+レスポンス受信時は以下を最低限検証し、条件を満たさない場合は `technical-design.md` のフォールバック方針に従う。
+
+#### ② 画面文脈抽出
+
+- `chat_detected` は必須（Boolean）
+- `messages` は必須（Array）。`chat_detected=false` の場合は空配列を許可
+- 各 `messages[i]` は `speaker`（`"partner"` or `"me"`）と `text`（空文字不可）を必須
+- `date_label` / `time` は `String | null`
+- `last_speaker` / `last_message` は `String | null`。`last_message` はスタンプ・メディアのみの末尾を除外した最後のテキスト
+
+#### ③ アスクユーザーQ1〜Q3一括生成
+
+- `questions` は必須、件数は厳密に3
+- 各 `questions[i].question` は空文字不可
+- 各 `questions[i].options` は件数が厳密に3
+- 各 `options[j]` は `label`（表示文言）と `value`（英語スネークケース）を必須
+- `value` は同一質問内で重複不可
+
+#### ④ 返信文生成
+
+- `chips` は必須、件数は2〜5
+- 各 `chips[i].text` は空文字不可
+- 受信順を表示順・タップ挿入順として扱う（並び替えUIはMVP対象外）
+
+### 3.6 APIキーの用途別割り当て
 
 MVPではGemini APIキーを4用途に分離して運用する。
 

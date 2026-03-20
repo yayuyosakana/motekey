@@ -37,7 +37,7 @@
 
 # 出力形式
 
-この出力結果はApp Group (UserDefaults) に `textHabit` キーで保存され、返信文生成時に参照されます。
+この出力結果は App Group (UserDefaults) の `textStyleProfileData`（JSONエンコード）として保存され、返信文生成時に参照されます。
 
 ```json
 {
