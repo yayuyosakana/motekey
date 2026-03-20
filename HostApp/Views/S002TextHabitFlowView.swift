@@ -49,10 +49,10 @@ struct S002TextHabitFlowView: View {
                     .onAppear {
                         scrollToBottom(proxy: proxy, animated: false)
                     }
-                    .onChange(of: submittedReply) { _ in
+                    .onChange(of: submittedReply) { _, _ in
                         scrollToBottom(proxy: proxy, animated: true)
                     }
-                    .onChange(of: questionIndex) { _ in
+                    .onChange(of: questionIndex) { _, _ in
                         scrollToBottom(proxy: proxy, animated: false)
                     }
                 }

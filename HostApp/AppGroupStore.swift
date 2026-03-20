@@ -89,6 +89,7 @@ enum RelationshipType: String, Codable, CaseIterable, Identifiable {
         self == .wife || self == .fiance
     }
 
+    /// API/保存スキーマ向けの安定識別子
     var schemaValue: String {
         switch self {
         case .girlfriend: return "girlfriend"

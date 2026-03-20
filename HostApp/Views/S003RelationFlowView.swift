@@ -92,7 +92,7 @@ struct S003RelationFlowView: View {
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $cautionNote)
                     .frame(height: 140)
-                    .onChange(of: cautionNote) { newValue in
+                    .onChange(of: cautionNote) { _, newValue in
                         if newValue.count > 200 {
                             cautionNote = String(newValue.prefix(200))
                         }

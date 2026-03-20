@@ -81,7 +81,7 @@ struct S004PermissionGuideView: View {
             hasAcknowledgedScreenRecording = state.savedScreenRecordingAcknowledgement()
             checkKeyboardPermission(updateErrorState: false)
         }
-        .onChange(of: hasAcknowledgedScreenRecording) { value in
+        .onChange(of: hasAcknowledgedScreenRecording) { _, value in
             state.updatePermissionFlags(screenRecordingAcknowledged: value)
         }
 #if canImport(UIKit)
