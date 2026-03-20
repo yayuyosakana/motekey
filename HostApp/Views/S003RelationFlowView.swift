@@ -26,7 +26,7 @@ struct S003RelationFlowView: View {
             Spacer()
 
             if step != .done {
-                Button(step == .birthdayAndCaution ? "登録する" : "次へ") {
+                Button(step == .birthdayAndCaution ? HostCopy.S003.register : HostCopy.S003.next) {
                     next()
                 }
                 .buttonStyle(.borderedProminent)
@@ -59,45 +59,45 @@ struct S003RelationFlowView: View {
     private var content: some View {
         switch step {
         case .nickname:
-            Text("パートナーの呼び名を教えてください")
+            Text(HostCopy.S003.nicknamePrompt)
                 .font(.headline)
-            TextField("ゆいちゃん、妻、など", text: $nickname)
+            TextField(HostCopy.S003.nicknamePlaceholder, text: $nickname)
                 .textFieldStyle(.roundedBorder)
-            Button("わからない・決めていない") {
+            Button(HostCopy.S003.nicknameSkip) {
                 nickname = ""
                 step = .relationship
             }
             .buttonStyle(.bordered)
         case .relationship:
-            Text("どんな関係ですか？")
+            Text(HostCopy.S003.relationPrompt)
                 .font(.headline)
-            Picker("関係性", selection: $relationshipType) {
+            Picker("relationship", selection: $relationshipType) {
                 ForEach(RelationshipType.allCases) { type in
                     Text(type.rawValue).tag(type)
                 }
             }
             .pickerStyle(.inline)
         case .datingDate:
-            Text("付き合い始めたのはいつ？")
+            Text(HostCopy.S003.datingDatePrompt)
                 .font(.headline)
-            DatePicker("付き合い始めた日", selection: $datingStartDate, displayedComponents: .date)
+            DatePicker(HostCopy.S003.datingDateLabel, selection: $datingStartDate, displayedComponents: .date)
                 .datePickerStyle(.graphical)
 
             if relationshipType.requiresMarriageDate {
-                Toggle("入籍日も追加", isOn: $includeMarriageDate)
+                Toggle(HostCopy.S003.marriageToggle, isOn: $includeMarriageDate)
                 if includeMarriageDate {
-                    DatePicker("入籍日", selection: $marriageDate, displayedComponents: .date)
+                    DatePicker(HostCopy.S003.marriageDateLabel, selection: $marriageDate, displayedComponents: .date)
                         .datePickerStyle(.compact)
                 }
             }
         case .birthdayAndCaution:
-            Text("誕生日と気をつけること")
+            Text(HostCopy.S003.birthdayAndCautionPrompt)
                 .font(.headline)
-            Toggle("誕生日を登録する", isOn: $hasBirthday)
+            Toggle(HostCopy.S003.birthdayToggle, isOn: $hasBirthday)
             if hasBirthday {
                 MonthDayPicker(month: $birthdayMonth, day: $birthdayDay)
 
-                Button("不明・スキップ") {
+                Button(HostCopy.S003.birthdaySkip) {
                     hasBirthday = false
                 }
                 .buttonStyle(.bordered)
@@ -113,7 +113,7 @@ struct S003RelationFlowView: View {
                     }
 
                 if cautionNote.isEmpty {
-                    Text("例：来週が記念日、最近仕事が忙しくて余裕がない、返信が遅いと怒りやすい、など")
+                    Text(HostCopy.S003.cautionPlaceholder)
                         .foregroundStyle(.secondary)
                         .font(.callout)
                         .padding(.top, 8)
@@ -132,7 +132,7 @@ struct S003RelationFlowView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Button("特にない・わからない") {
+            Button(HostCopy.S003.cautionSkip) {
                 cautionNote = ""
             }
             .buttonStyle(.bordered)
@@ -152,10 +152,10 @@ struct S003RelationFlowView: View {
 
     private var stepNavigationTitle: String {
         switch step {
-        case .nickname: return "ステップ 1 / 4"
-        case .relationship: return "ステップ 2 / 4"
-        case .datingDate: return "ステップ 3 / 4"
-        case .birthdayAndCaution: return "ステップ 4 / 4"
+        case .nickname: return HostCopy.S003.step1
+        case .relationship: return HostCopy.S003.step2
+        case .datingDate: return HostCopy.S003.step3
+        case .birthdayAndCaution: return HostCopy.S003.step4
         case .done: return HostCopy.S003.doneTitle
         }
     }
@@ -169,7 +169,7 @@ struct S003RelationFlowView: View {
         case .datingDate:
             step = .birthdayAndCaution
         case .birthdayAndCaution:
-            state.partnerNickname = nickname.isEmpty ? "パートナー" : nickname
+            state.partnerNickname = nickname.isEmpty ? HostCopy.Common.defaultPartnerName : nickname
             state.relationshipType = relationshipType
             state.datingStartDate = datingStartDate
             state.marriageDate = includeMarriageDate ? marriageDate : nil

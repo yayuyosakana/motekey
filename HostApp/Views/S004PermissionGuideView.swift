@@ -20,19 +20,19 @@ struct S004PermissionGuideView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("キーボードと画面収録の準備をお願いします")
+                Text(HostCopy.S004.prepHeadline)
                     .font(.headline)
 
-                Text("`mote+AI` を使うために、キーボードの有効化と画面収録の開始が必要です")
+                Text(HostCopy.S004.prepSubheadline)
                     .foregroundStyle(.secondary)
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("1. キーボードを有効にする")
+                    Text(HostCopy.S004.sectionKeyboard)
                         .font(.subheadline.bold())
-                    Text("1) iOSの設定アプリを開く")
-                    Text("2) 一般 > キーボード > キーボード")
-                    Text("3) 新しいキーボードを追加 > モテキー")
-                    Text("4) モテキー > フルアクセスを許可 をオン")
+                    Text(HostCopy.S004.keyboardStep1)
+                    Text(HostCopy.S004.keyboardStep2)
+                    Text(HostCopy.S004.keyboardStep3)
+                    Text(HostCopy.S004.keyboardStep4)
                 }
                 .foregroundStyle(.secondary)
 
@@ -44,16 +44,16 @@ struct S004PermissionGuideView: View {
                 Divider()
 
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("2. 画面収録を開始する")
+                    Text(HostCopy.S004.sectionRecording)
                         .font(.subheadline.bold())
-                    Text("1) コントロールセンターを開く")
-                    Text("2) 画面収録を長押し")
-                    Text("3) モテキーを選択して開始")
-                    Text("4) LINEに戻る")
+                    Text(HostCopy.S004.recordingStep1)
+                    Text(HostCopy.S004.recordingStep2)
+                    Text(HostCopy.S004.recordingStep3)
+                    Text(HostCopy.S004.recordingStep4)
                 }
                 .foregroundStyle(.secondary)
 
-                Toggle("画面収録の開始手順を確認した", isOn: $hasAcknowledgedScreenRecording)
+                Toggle(HostCopy.S004.recordingAcknowledgement, isOn: $hasAcknowledgedScreenRecording)
 
                 Button(HostCopy.S004.next) {
                     state.navigationPath.append(HostRoute.keyboardComplete)
@@ -62,11 +62,11 @@ struct S004PermissionGuideView: View {
                 .disabled(!(hasMotekeyEnabled && hasAcknowledgedScreenRecording))
 
                 if showError {
-                    Text("キーボードの追加またはフルアクセス許可が完了していないようです。")
+                    Text(HostCopy.S004.permissionError)
                         .font(.caption)
                         .foregroundStyle(.red)
 
-                    Button("もう一度設定を開く") {
+                    Button(HostCopy.S004.reopenSettings) {
                         openSettings()
                     }
                     .buttonStyle(.bordered)
@@ -118,18 +118,18 @@ struct S004CompleteView: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 56))
                 .foregroundStyle(.green)
-            Text("準備完了です")
+            Text(HostCopy.S004.completeHeadline)
                 .font(.title3)
-            Text("次にメッセージアプリでモテキーへ切り替える手順を確認します")
+            Text(HostCopy.S004.completeSubheadline)
                 .multilineTextAlignment(.center)
                 .foregroundStyle(.secondary)
 
-            Button("使い方を見る") {
+            Button(HostCopy.S004.viewTutorial) {
                 state.navigationPath.append(HostRoute.tutorial)
             }
             .buttonStyle(.borderedProminent)
 
-            Button("あとで") {
+            Button(HostCopy.S004.later) {
                 state.markSetupConfigured()
                 state.resetToHome()
             }
@@ -147,11 +147,11 @@ struct S004TutorialView: View {
     var body: some View {
         VStack {
             List {
-                Text("1. メッセージアプリを開く")
-                Text("2. 入力欄をタップしてキーボードを表示")
-                Text("3. 地球儀アイコンを長押し")
-                Text("4. モテキーを選択")
-                Text("5. mote+AI をタップして開始")
+                Text(HostCopy.S004.tutorialStep1)
+                Text(HostCopy.S004.tutorialStep2)
+                Text(HostCopy.S004.tutorialStep3)
+                Text(HostCopy.S004.tutorialStep4)
+                Text(HostCopy.S004.tutorialStep5)
             }
 
             Button(HostCopy.S004.start) {

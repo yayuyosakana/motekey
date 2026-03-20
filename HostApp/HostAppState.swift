@@ -50,7 +50,7 @@ final class HostAppState: ObservableObject {
     }
 
     func saveRelationProfile() {
-        let nickname = partnerNickname.isEmpty ? "パートナー" : partnerNickname
+        let nickname = partnerNickname.isEmpty ? HostCopy.Common.defaultPartnerName : partnerNickname
         let profile = RelationProfile(
             partnerNickname: nickname,
             relationshipType: relationshipType,
