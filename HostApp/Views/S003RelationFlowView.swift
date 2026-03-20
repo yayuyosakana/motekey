@@ -63,6 +63,11 @@ struct S003RelationFlowView: View {
                 .font(.headline)
             TextField("ゆいちゃん、妻、など", text: $nickname)
                 .textFieldStyle(.roundedBorder)
+            Button("わからない・決めていない") {
+                nickname = ""
+                step = .relationship
+            }
+            .buttonStyle(.bordered)
         case .relationship:
             Text("どんな関係ですか？")
                 .font(.headline)
@@ -104,6 +109,11 @@ struct S003RelationFlowView: View {
                 }
                 .pickerStyle(.wheel)
                 .frame(height: 120)
+
+                Button("不明・スキップ") {
+                    hasBirthday = false
+                }
+                .buttonStyle(.bordered)
             }
 
             TextEditor(text: $cautionNote)
@@ -112,6 +122,23 @@ struct S003RelationFlowView: View {
                     RoundedRectangle(cornerRadius: 8)
                         .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
                 }
+                .onChange(of: cautionNote) { newValue in
+                    if newValue.count > 200 {
+                        cautionNote = String(newValue.prefix(200))
+                    }
+                }
+
+            HStack {
+                Spacer()
+                Text("\(cautionNote.count)/200")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Button("特にない・わからない") {
+                cautionNote = ""
+            }
+            .buttonStyle(.bordered)
 
             Toggle("入力内容と会話文脈がGemini APIに送信されることに同意する", isOn: $isAgreed)
         case .done:
