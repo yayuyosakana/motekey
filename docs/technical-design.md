@@ -121,7 +121,7 @@ func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with type: RPSampleBuff
 | -------------------------- | --------------------------------- | -------------------------------------------------------------------- |
 | メモリ超過（50MB）         | 画像データやAPIレスポンスの解放漏れ | `autoreleasepool`で画像読込を囲む。テキスト以外のデータは即座に解放  |
 | App Groupファイル読込失敗  | Broadcast Extensionが停止/未起動  | ファイル存在チェック → 失敗時は手入力フォールバックUI表示            |
-| ネットワークタイムアウト   | Wi-Fi/モバイル通信の不安定        | URLSessionのtimeoutIntervalを10秒に設定。タイムアウト時はリトライ表示 |
+| ネットワークタイムアウト   | Wi-Fi/モバイル通信の不安定        | URLSessionのtimeoutIntervalを10秒に設定。タイムアウト時はリトライ表示（再失敗時は手入力フォールバック） |
 | UIKit描画の過負荷          | チップUIの大量描画                | 生成するチップ数を最大5個に制限                                      |
 
 ### 3.3 軸3: Gemini Vision API（外部サービス側）
@@ -158,4 +158,4 @@ func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with type: RPSampleBuff
 | フレーム取得         | ファイルが存在しない / 読込エラー        | 手入力UI                        |
 | Gemini Vision API    | タイムアウト / 解析失敗 / チャット未検出 | 手入力UI                        |
 | アスクユーザーQ1〜Q3一括生成 | タイムアウト / パースエラー        | 手入力UI（必要に応じて再試行導線） |
-| 返信文生成           | タイムアウト / パースエラー              | リトライボタン                  |
+| 返信文生成           | タイムアウト / パースエラー              | リトライボタン（再失敗時は手入力UI） |
