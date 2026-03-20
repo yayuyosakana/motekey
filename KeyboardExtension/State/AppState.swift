@@ -10,6 +10,8 @@ final class AppState: ObservableObject {
     @Published var isAIProcessing = false
     @Published var fallbackReason: FallbackReason = .none
     @Published var permissionIssue: PermissionIssue = .none
+    @Published var manualFallbackInput = ""
+    @Published var manualFallbackValidationMessage: String?
 
     @Published var chatContext = ""
     @Published var askUserQuestions: [AskUserQuestion] = []
@@ -95,8 +97,27 @@ final class AppState: ObservableObject {
         handleBottomTabTap(.moteAI)
     }
 
+    func continueFromManualFallbackInput() {
+        guard currentScreen == .fallback else { return }
+        let trimmed = manualFallbackInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            manualFallbackValidationMessage = "相手のメッセージを入力してください。"
+            return
+        }
+
+        manualFallbackValidationMessage = nil
+        isAIProcessing = true
+        transition(to: .loading)
+        let activeFlowID = flowID
+        generationTask = Task { [weak self] in
+            await self?.runManualFallbackAskUserFlow(chatContext: trimmed, flowID: activeFlowID)
+        }
+    }
+
     func closeFallback() {
         guard currentScreen == .fallback else { return }
+        manualFallbackInput = ""
+        manualFallbackValidationMessage = nil
         switchToKeyboardAndCancelAskUserIfNeeded()
     }
 
@@ -118,6 +139,8 @@ final class AppState: ObservableObject {
         isAIProcessing = false
         fallbackReason = .none
         permissionIssue = .none
+        manualFallbackInput = ""
+        manualFallbackValidationMessage = nil
 
         chatContext = ""
         askUserQuestions = []
@@ -142,6 +165,7 @@ final class AppState: ObservableObject {
         askUserQuestions = []
         askUserAnswers = [:]
         currentQuestionIndex = 0
+        manualFallbackValidationMessage = nil
 
         displayMode = .chip
     }
@@ -293,6 +317,43 @@ final class AppState: ObservableObject {
             isAIProcessing = false
             fallbackReason = .none
             transition(to: .stage)
+        } catch {
+            handleFlowError(error, flowID: flowID)
+        }
+    }
+
+    private func runManualFallbackAskUserFlow(chatContext: String, flowID: UUID) async {
+        do {
+            let textStyleProfile = profileStore.loadTextStyleProfile()
+            let relationProfile = profileStore.loadRelationProfile()
+            let context = AskUserContext(
+                chatContext: chatContext,
+                textStyleProfile: textStyleProfile,
+                relationProfile: relationProfile
+            )
+
+            let questions: [AskUserQuestion]
+            do {
+                questions = try await questionGenerator.generateQuestions(context: context)
+            } catch {
+                if error is CancellationError { throw error }
+                questions = makeDefaultAskUserQuestions()
+            }
+            guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
+                throw RuntimeError.invalidQuestionResponse
+            }
+
+            if Task.isCancelled || self.flowID != flowID { return }
+
+            self.chatContext = chatContext
+            askUserQuestions = questions
+            askUserAnswers = [:]
+            currentQuestionIndex = 0
+            manualFallbackInput = ""
+            manualFallbackValidationMessage = nil
+            isAIProcessing = false
+            fallbackReason = .none
+            transition(to: .askUser)
         } catch {
             handleFlowError(error, flowID: flowID)
         }

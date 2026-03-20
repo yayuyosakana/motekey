@@ -11,8 +11,21 @@ struct FallbackLayerView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+            TextField("相手のメッセージを手入力", text: $appState.manualFallbackInput, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .lineLimit(2...5)
+
+            if let validation = appState.manualFallbackValidationMessage {
+                Text(validation)
+                    .font(.caption2)
+                    .foregroundStyle(.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+
             HStack(spacing: 8) {
                 Button("再試行") { appState.retryFromFallback() }
+                    .buttonStyle(.borderedProminent)
+                Button("手入力で続行") { appState.continueFromManualFallbackInput() }
                     .buttonStyle(.borderedProminent)
                 Button("キーボードへ") { appState.closeFallback() }
                     .buttonStyle(.bordered)
