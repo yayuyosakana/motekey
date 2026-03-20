@@ -130,8 +130,7 @@ struct S004CompleteView: View {
             .buttonStyle(.borderedProminent)
 
             Button(HostCopy.S004.later) {
-                state.markSetupConfigured()
-                state.resetToHome()
+                state.completeSetupAndReturnHome()
             }
             .buttonStyle(.bordered)
         }
@@ -155,8 +154,7 @@ struct S004TutorialView: View {
             }
 
             Button(HostCopy.S004.start) {
-                state.markSetupConfigured()
-                state.resetToHome()
+                state.completeSetupAndReturnHome()
             }
             .buttonStyle(.borderedProminent)
             .padding(.horizontal, 16)
@@ -166,8 +164,7 @@ struct S004TutorialView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(HostCopy.S004.close) {
-                    state.markSetupConfigured()
-                    state.resetToHome()
+                    state.completeSetupAndReturnHome()
                 }
             }
         }

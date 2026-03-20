@@ -37,21 +37,7 @@ struct S003RelationFlowView: View {
         .navigationTitle(stepNavigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            nickname = state.partnerNickname
-            relationshipType = state.relationshipType
-            cautionNote = state.cautionNote
-            if let birthday = state.partnerBirthday {
-                hasBirthday = true
-                birthdayMonth = birthday.month
-                birthdayDay = birthday.day
-            }
-            if let date = state.datingStartDate {
-                datingStartDate = date
-            }
-            if let mDate = state.marriageDate {
-                includeMarriageDate = true
-                marriageDate = mDate
-            }
+            applyDraft(state.makeRelationDraft())
         }
     }
 
@@ -169,16 +155,33 @@ struct S003RelationFlowView: View {
         case .datingDate:
             step = .birthdayAndCaution
         case .birthdayAndCaution:
-            state.partnerNickname = nickname.isEmpty ? HostCopy.Common.defaultPartnerName : nickname
-            state.relationshipType = relationshipType
-            state.datingStartDate = datingStartDate
-            state.marriageDate = includeMarriageDate ? marriageDate : nil
-            state.partnerBirthday = hasBirthday ? MonthDay(month: birthdayMonth, day: birthdayDay) : nil
-            state.cautionNote = cautionNote
-            state.saveRelationProfile()
+            state.saveRelationDraft(
+                .init(
+                    nickname: nickname,
+                    relationshipType: relationshipType,
+                    datingStartDate: datingStartDate,
+                    includeMarriageDate: includeMarriageDate,
+                    marriageDate: marriageDate,
+                    hasBirthday: hasBirthday,
+                    birthday: MonthDay(month: birthdayMonth, day: birthdayDay),
+                    cautionNote: cautionNote
+                )
+            )
             step = .done
         case .done:
             break
         }
+    }
+
+    private func applyDraft(_ draft: HostAppState.RelationDraft) {
+        nickname = draft.nickname
+        relationshipType = draft.relationshipType
+        datingStartDate = draft.datingStartDate
+        includeMarriageDate = draft.includeMarriageDate
+        marriageDate = draft.marriageDate
+        hasBirthday = draft.hasBirthday
+        birthdayMonth = draft.birthday.month
+        birthdayDay = draft.birthday.day
+        cautionNote = draft.cautionNote
     }
 }

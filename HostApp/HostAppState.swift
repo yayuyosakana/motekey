@@ -3,6 +3,17 @@ import SwiftUI
 
 @MainActor
 final class HostAppState: ObservableObject {
+    struct RelationDraft {
+        var nickname: String
+        var relationshipType: RelationshipType
+        var datingStartDate: Date
+        var includeMarriageDate: Bool
+        var marriageDate: Date
+        var hasBirthday: Bool
+        var birthday: MonthDay
+        var cautionNote: String
+    }
+
     @Published var navigationPath = NavigationPath()
 
     @Published var textStyleRegistered = false
@@ -64,9 +75,37 @@ final class HostAppState: ObservableObject {
         relationRegistered = true
     }
 
+    func makeRelationDraft() -> RelationDraft {
+        RelationDraft(
+            nickname: partnerNickname,
+            relationshipType: relationshipType,
+            datingStartDate: datingStartDate ?? Date(),
+            includeMarriageDate: marriageDate != nil,
+            marriageDate: marriageDate ?? Date(),
+            hasBirthday: partnerBirthday != nil,
+            birthday: partnerBirthday ?? MonthDay(month: 1, day: 1),
+            cautionNote: cautionNote
+        )
+    }
+
+    func saveRelationDraft(_ draft: RelationDraft) {
+        partnerNickname = draft.nickname.isEmpty ? HostCopy.Common.defaultPartnerName : draft.nickname
+        relationshipType = draft.relationshipType
+        datingStartDate = draft.datingStartDate
+        marriageDate = draft.includeMarriageDate ? draft.marriageDate : nil
+        partnerBirthday = draft.hasBirthday ? draft.birthday : nil
+        cautionNote = draft.cautionNote
+        saveRelationProfile()
+    }
+
     func markSetupConfigured() {
         setupConfigured = true
         store.saveSetupConfigured(true)
+    }
+
+    func completeSetupAndReturnHome() {
+        markSetupConfigured()
+        resetToHome()
     }
 
     func resetToHome() {
