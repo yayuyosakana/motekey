@@ -691,13 +691,13 @@ func updateKeyboardHeight(for mode: MoteKeyMode) {
 }
 ```
 
-### ステージからのテキスト送信コード例
+### ステージチップ挿入コード例（専用送信ボタンなし）
 
 ```swift
-// ステージの「送信」ボタン押下時
-func sendStagedMessage(chips: [Chip]) {
-    let fullMessage = chips.map { $0.text }.joined(separator: "\n")
-    textDocumentProxy.insertText(fullMessage)
+// 各チップのタップ時に、その文面を入力欄へ挿入する
+// 複数チップは「タップした順」で入力欄へ積み上げる
+func insertStageChip(_ chip: Chip) {
+    textDocumentProxy.insertText(chip.text)
 }
 ```
 

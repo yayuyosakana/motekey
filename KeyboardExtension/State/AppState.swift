@@ -1,0 +1,393 @@
+import Foundation
+import Combine
+
+@MainActor
+final class AppState: ObservableObject {
+
+    @Published var currentScreen: KbdScreen = .keyboard
+    @Published var displayMode: DisplayMode = .chip
+
+    @Published var isAIProcessing = false
+    @Published var fallbackReason: FallbackReason = .none
+    @Published var permissionIssue: PermissionIssue = .none
+    @Published var manualFallbackInput = ""
+    @Published var manualFallbackValidationMessage: String?
+
+    @Published var chatContext = ""
+    @Published var askUserQuestions: [AskUserQuestion] = []
+    @Published var askUserAnswers: [Int: String] = [:]
+    @Published var currentQuestionIndex = 0
+
+    @Published var generatedCandidates: [ReplyCandidate] = []
+    @Published private(set) var tappedChipHistory: [ReplyCandidate] = []
+
+    private(set) var generationTask: Task<Void, Never>?
+
+    private let frameLoader: LatestFrameLoading
+    private let visionExtractor: VisionContextExtracting
+    private let questionGenerator: AskUserQuestionGenerating
+    private let replyGenerator: ReplyGenerating
+    private let profileStore: ProfileStore
+    private let permissionChecker: PermissionChecking
+    private weak var composeProxy: ComposeTextProxy?
+    private var flowID = UUID()
+
+    init(
+        frameLoader: LatestFrameLoading,
+        visionExtractor: VisionContextExtracting,
+        questionGenerator: AskUserQuestionGenerating,
+        replyGenerator: ReplyGenerating,
+        profileStore: ProfileStore,
+        permissionChecker: PermissionChecking,
+        composeProxy: ComposeTextProxy?
+    ) {
+        self.frameLoader = frameLoader
+        self.visionExtractor = visionExtractor
+        self.questionGenerator = questionGenerator
+        self.replyGenerator = replyGenerator
+        self.profileStore = profileStore
+        self.permissionChecker = permissionChecker
+        self.composeProxy = composeProxy
+    }
+
+    deinit {
+        generationTask?.cancel()
+    }
+
+    func handleBottomTabTap(_ tab: BottomTab) {
+        switch tab {
+        case .moteAI:
+            startAskUserFlow()
+        case .keyboard:
+            switchToKeyboardAndCancelAskUserIfNeeded()
+        case .fullText:
+            guard canOpenFullText else { return }
+            displayMode = .fullText
+            transition(to: .fullText)
+        }
+    }
+
+    func selectOption(_ value: String) {
+        guard currentQuestionIndex < askUserQuestions.count else { return }
+        askUserAnswers[currentQuestionIndex] = value
+
+        if currentQuestionIndex >= askUserQuestions.count - 1 {
+            startReplyGeneration()
+        } else {
+            currentQuestionIndex += 1
+        }
+    }
+
+    func insertChip(_ candidate: ReplyCandidate) {
+        composeProxy?.insertText(candidate.text)
+        tappedChipHistory.append(candidate)
+    }
+
+    func showStage() {
+        guard !generatedCandidates.isEmpty else {
+            transition(to: .keyboard)
+            return
+        }
+        displayMode = .chip
+        transition(to: .stage)
+    }
+
+    func retryFromFallback() {
+        guard currentScreen == .fallback else { return }
+        handleBottomTabTap(.moteAI)
+    }
+
+    func continueFromManualFallbackInput() {
+        guard currentScreen == .fallback else { return }
+        let trimmed = manualFallbackInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            manualFallbackValidationMessage = "相手のメッセージを入力してください。"
+            return
+        }
+
+        manualFallbackValidationMessage = nil
+        isAIProcessing = true
+        transition(to: .loading)
+        let activeFlowID = flowID
+        generationTask = Task { [weak self] in
+            await self?.runManualFallbackAskUserFlow(chatContext: trimmed, flowID: activeFlowID)
+        }
+    }
+
+    func closeFallback() {
+        guard currentScreen == .fallback else { return }
+        manualFallbackInput = ""
+        manualFallbackValidationMessage = nil
+        switchToKeyboardAndCancelAskUserIfNeeded()
+    }
+
+    func retryAfterPermissionGrant() {
+        guard currentScreen == .permissionBlock else { return }
+        handleBottomTabTap(.moteAI)
+    }
+
+    func closePermissionBlock() {
+        guard currentScreen == .permissionBlock else { return }
+        permissionIssue = .none
+        transition(to: generatedCandidates.isEmpty ? .keyboard : .stage)
+    }
+
+    func resetAll() {
+        generationTask?.cancel()
+        generationTask = nil
+
+        isAIProcessing = false
+        fallbackReason = .none
+        permissionIssue = .none
+        manualFallbackInput = ""
+        manualFallbackValidationMessage = nil
+
+        chatContext = ""
+        askUserQuestions = []
+        askUserAnswers = [:]
+        currentQuestionIndex = 0
+
+        generatedCandidates = []
+        tappedChipHistory = []
+
+        displayMode = .chip
+        currentScreen = .keyboard
+    }
+
+    /// `mote+AI` 質問フローを中断し、ローカル状態と in-flight Task を破棄する。
+    func cancelAskUserFlow() {
+        generationTask?.cancel()
+        generationTask = nil
+        flowID = UUID()
+
+        isAIProcessing = false
+        chatContext = ""
+        askUserQuestions = []
+        askUserAnswers = [:]
+        currentQuestionIndex = 0
+        manualFallbackValidationMessage = nil
+
+        displayMode = .chip
+    }
+
+    var canOpenFullText: Bool {
+        !generatedCandidates.isEmpty && currentScreen != .askUser && currentScreen != .loading
+    }
+
+    private func startAskUserFlow() {
+        guard !isAIProcessing else { return }
+        let issue = permissionChecker.currentPermissionIssue()
+        guard issue == .none else {
+            permissionIssue = issue
+            transition(to: .permissionBlock)
+            return
+        }
+
+        cancelAskUserFlow()
+        isAIProcessing = true
+        transition(to: .loading)
+        let activeFlowID = flowID
+
+        generationTask = Task { [weak self] in
+            await self?.runAskUserFlow(flowID: activeFlowID)
+        }
+    }
+
+    private func startReplyGeneration() {
+        guard !isAIProcessing else { return }
+
+        isAIProcessing = true
+        transition(to: .loading)
+        let activeFlowID = flowID
+
+        generationTask = Task { [weak self] in
+            await self?.runReplyGeneration(flowID: activeFlowID)
+        }
+    }
+
+    private func switchToKeyboardAndCancelAskUserIfNeeded() {
+        if currentScreen == .askUser || currentScreen == .loading {
+            cancelAskUserFlow()
+        }
+        displayMode = .chip
+        transition(to: generatedCandidates.isEmpty ? .keyboard : .stage)
+    }
+
+    private func transition(to next: KbdScreen) {
+        currentScreen = next
+    }
+
+    private func handleFlowError(_ error: Error, flowID: UUID) {
+        guard self.flowID == flowID else { return }
+        isAIProcessing = false
+
+        if error is CancellationError {
+            transition(to: generatedCandidates.isEmpty ? .keyboard : .stage)
+            return
+        }
+
+        fallbackReason = classifyFallbackReason(error)
+        transition(to: .fallback)
+    }
+
+    private func classifyFallbackReason(_ error: Error) -> FallbackReason {
+        if let urlError = error as? URLError, urlError.code == .timedOut {
+            return .apiTimeout
+        }
+        if let geminiError = error as? GeminiServiceError {
+            switch geminiError {
+            case .chatNotDetected:
+                return .imageCaptureFailed
+            case .invalidHTTPStatus(let code) where code == 408 || code == 504:
+                return .apiTimeout
+            default:
+                return .apiError
+            }
+        }
+        return .apiError
+    }
+
+    private func runAskUserFlow(flowID: UUID) async {
+        do {
+            let frameData: Data
+            do {
+                frameData = try frameLoader.loadLatestFrameData()
+            } catch {
+                guard self.flowID == flowID else { return }
+                isAIProcessing = false
+                fallbackReason = .imageCaptureFailed
+                transition(to: .fallback)
+                return
+            }
+            let contextText = try await visionExtractor.extractChatContext(imageData: frameData)
+
+            let textStyleProfile = profileStore.loadTextStyleProfile()
+            let relationProfile = profileStore.loadRelationProfile()
+            let context = AskUserContext(
+                chatContext: contextText,
+                textStyleProfile: textStyleProfile,
+                relationProfile: relationProfile
+            )
+
+            let questions: [AskUserQuestion]
+            do {
+                questions = try await questionGenerator.generateQuestions(context: context)
+            } catch {
+                if error is CancellationError { throw error }
+                questions = makeDefaultAskUserQuestions()
+            }
+            guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
+                throw RuntimeError.invalidQuestionResponse
+            }
+
+            if Task.isCancelled || self.flowID != flowID { return }
+
+            chatContext = contextText
+            askUserQuestions = questions
+            askUserAnswers = [:]
+            currentQuestionIndex = 0
+            isAIProcessing = false
+            fallbackReason = .none
+            transition(to: .askUser)
+        } catch {
+            handleFlowError(error, flowID: flowID)
+        }
+    }
+
+    private func runReplyGeneration(flowID: UUID) async {
+        do {
+            let textStyleProfile = profileStore.loadTextStyleProfile()
+            let relationProfile = profileStore.loadRelationProfile()
+
+            let candidates = try await replyGenerator.generateReplyCandidates(
+                chatContext: chatContext,
+                answers: askUserAnswers,
+                textStyleProfile: textStyleProfile,
+                relationProfile: relationProfile
+            )
+
+            guard !candidates.isEmpty else {
+                throw RuntimeError.invalidReplyResponse
+            }
+
+            if Task.isCancelled || self.flowID != flowID { return }
+
+            generatedCandidates = candidates
+            displayMode = .chip
+            isAIProcessing = false
+            fallbackReason = .none
+            transition(to: .stage)
+        } catch {
+            handleFlowError(error, flowID: flowID)
+        }
+    }
+
+    private func runManualFallbackAskUserFlow(chatContext: String, flowID: UUID) async {
+        do {
+            let textStyleProfile = profileStore.loadTextStyleProfile()
+            let relationProfile = profileStore.loadRelationProfile()
+            let context = AskUserContext(
+                chatContext: chatContext,
+                textStyleProfile: textStyleProfile,
+                relationProfile: relationProfile
+            )
+
+            let questions: [AskUserQuestion]
+            do {
+                questions = try await questionGenerator.generateQuestions(context: context)
+            } catch {
+                if error is CancellationError { throw error }
+                questions = makeDefaultAskUserQuestions()
+            }
+            guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
+                throw RuntimeError.invalidQuestionResponse
+            }
+
+            if Task.isCancelled || self.flowID != flowID { return }
+
+            self.chatContext = chatContext
+            askUserQuestions = questions
+            askUserAnswers = [:]
+            currentQuestionIndex = 0
+            manualFallbackInput = ""
+            manualFallbackValidationMessage = nil
+            isAIProcessing = false
+            fallbackReason = .none
+            transition(to: .askUser)
+        } catch {
+            handleFlowError(error, flowID: flowID)
+        }
+    }
+
+    private func makeDefaultAskUserQuestions() -> [AskUserQuestion] {
+        [
+            AskUserQuestion(
+                index: 0,
+                text: "まず伝えるべき事実はどれですか？",
+                options: [
+                    AskUserOption(label: "今の状況を具体的に伝える", value: "state_concrete"),
+                    AskUserOption(label: "時間の見通しを伝える", value: "time_estimate"),
+                    AskUserOption(label: "未確定であることを伝える", value: "state_uncertain")
+                ]
+            ),
+            AskUserQuestion(
+                index: 1,
+                text: "次の行動として近いものは？",
+                options: [
+                    AskUserOption(label: "今日中に対応する", value: "act_today"),
+                    AskUserOption(label: "明日対応する", value: "act_tomorrow"),
+                    AskUserOption(label: "代替案を提案する", value: "propose_alternative")
+                ]
+            ),
+            AskUserQuestion(
+                index: 2,
+                text: "相手への配慮として含める要素は？",
+                options: [
+                    AskUserOption(label: "謝意を先に伝える", value: "thanks_first"),
+                    AskUserOption(label: "負担軽減の提案をする", value: "reduce_burden"),
+                    AskUserOption(label: "確認質問を添える", value: "ask_confirmation")
+                ]
+            )
+        ]
+    }
+}
