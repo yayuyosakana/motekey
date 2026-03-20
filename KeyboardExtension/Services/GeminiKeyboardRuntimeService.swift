@@ -180,10 +180,19 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         }
 
         guard !payload.messages.isEmpty else { return false }
-        return payload.messages.allSatisfy { message in
+        guard payload.messages.allSatisfy({ message in
             let text = message.text.trimmingCharacters(in: .whitespacesAndNewlines)
             return !text.isEmpty
+        }) else {
+            return false
         }
+
+        guard payload.last_speaker != nil else { return false }
+        guard let lastMessage = payload.last_message?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !lastMessage.isEmpty else {
+            return false
+        }
+        return true
     }
 
     private func isValidQuestionPayload(_ payload: AskUserQuestionsPayload) -> Bool {
