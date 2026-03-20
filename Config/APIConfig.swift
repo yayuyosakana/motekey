@@ -20,11 +20,11 @@ import Foundation
 /// ハッカソン本番中に上記設定が間に合わない場合は、
 /// Secrets.xcconfig 側に直接値を入れてビルドしてください。
 /// ただし絶対にコミットしないこと。
-enum APIConfig {
+public enum APIConfig {
 
     // MARK: - Gemini API Key
 
-    enum GeminiCallType {
+    public enum GeminiCallType {
         case textHabitAnalysis
         case visionChatContextExtraction
         case askUserQuestionGeneration
@@ -32,44 +32,97 @@ enum APIConfig {
     }
 
     /// 既存コード向けの後方互換（単一キー参照）
-    static var geminiAPIKey: String {
+    public static var geminiAPIKey: String {
         geminiAPIKey(for: .replyGeneration)
     }
 
     /// 呼び出し種別ごとに対応するGemini APIキーを取得する。
     /// 専用キー未設定時は後方互換として `GeminiAPIKey`（単一キー）にフォールバックする。
-    static func geminiAPIKey(for callType: GeminiCallType) -> String {
+    ///
+    /// 取得優先順:
+    /// 1. Info.plist の専用キー
+    /// 2. 環境変数の専用キー（CLIビルド/テスト向け）
+    /// 3. Info.plist の共通キー（GeminiAPIKey）
+    /// 4. 環境変数の共通キー（GEMINI_API_KEY）
+    public static func geminiAPIKey(
+        for callType: GeminiCallType,
+        bundle: Bundle = .main,
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> String {
         let dedicatedInfoPlistKey: String
         let dedicatedPlaceholder: String
+        let dedicatedEnvironmentKey: String
 
         switch callType {
         case .textHabitAnalysis:
             dedicatedInfoPlistKey = "GeminiAPIKeyTextHabit"
             dedicatedPlaceholder = "$(GEMINI_API_KEY_TEXT_HABIT)"
+            dedicatedEnvironmentKey = "GEMINI_API_KEY_TEXT_HABIT"
         case .visionChatContextExtraction:
             dedicatedInfoPlistKey = "GeminiAPIKeyVisionContext"
             dedicatedPlaceholder = "$(GEMINI_API_KEY_VISION_CONTEXT)"
+            dedicatedEnvironmentKey = "GEMINI_API_KEY_VISION_CONTEXT"
         case .askUserQuestionGeneration:
             dedicatedInfoPlistKey = "GeminiAPIKeyAskUserQuestion"
             dedicatedPlaceholder = "$(GEMINI_API_KEY_ASK_USER_QUESTION)"
+            dedicatedEnvironmentKey = "GEMINI_API_KEY_ASK_USER_QUESTION"
         case .replyGeneration:
             dedicatedInfoPlistKey = "GeminiAPIKeyReplyGeneration"
             dedicatedPlaceholder = "$(GEMINI_API_KEY_REPLY_GENERATION)"
+            dedicatedEnvironmentKey = "GEMINI_API_KEY_REPLY_GENERATION"
         }
 
-        if let dedicated = resolvedInfoPlistValue(key: dedicatedInfoPlistKey, placeholder: dedicatedPlaceholder) {
+        if let dedicated = resolvedInfoPlistValue(
+            bundle: bundle,
+            key: dedicatedInfoPlistKey,
+            placeholder: dedicatedPlaceholder
+        ) {
             return dedicated
         }
-        if let legacy = resolvedInfoPlistValue(key: "GeminiAPIKey", placeholder: "$(GEMINI_API_KEY)") {
+        if let dedicated = resolvedEnvironmentValue(
+            environment: environment,
+            key: dedicatedEnvironmentKey,
+            placeholder: dedicatedPlaceholder
+        ) {
+            return dedicated
+        }
+        if let legacy = resolvedInfoPlistValue(
+            bundle: bundle,
+            key: "GeminiAPIKey",
+            placeholder: "$(GEMINI_API_KEY)"
+        ) {
+            return legacy
+        }
+        if let legacy = resolvedEnvironmentValue(
+            environment: environment,
+            key: "GEMINI_API_KEY",
+            placeholder: "$(GEMINI_API_KEY)"
+        ) {
             return legacy
         }
 
-        assertionFailure("Gemini API キーが未設定です。Secrets.xcconfig と Info.plist を確認してください。")
+        assertionFailure(
+            "Gemini API キーが未設定です。Secrets.xcconfig / Info.plist / 環境変数を確認してください。"
+        )
         return ""
     }
 
-    private static func resolvedInfoPlistValue(key: String, placeholder: String) -> String? {
-        guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
+    private static func resolvedInfoPlistValue(bundle: Bundle, key: String, placeholder: String) -> String? {
+        guard let value = bundle.object(forInfoDictionaryKey: key) as? String,
+              !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              value != placeholder
+        else {
+            return nil
+        }
+        return value
+    }
+
+    private static func resolvedEnvironmentValue(
+        environment: [String: String],
+        key: String,
+        placeholder: String
+    ) -> String? {
+        guard let value = environment[key],
               !value.isEmpty,
               value != placeholder
         else {
@@ -80,9 +133,9 @@ enum APIConfig {
 
     // MARK: - Gemini API Endpoints
 
-    static let geminiTextEndpoint =
+    public static let geminiTextEndpoint =
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
-    static let geminiVisionEndpoint =
+    public static let geminiVisionEndpoint =
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 }

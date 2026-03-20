@@ -1,9 +1,10 @@
 import Foundation
+import MoteKeyShared
 
 struct KeyboardRuntimeFactory {
     /// specs で想定している App Group。
-    static let appGroupSuiteName = "group.com.motekey.shared"
-    static let latestFrameFileName = "latest_frame.jpg"
+    static let appGroupSuiteName = AppGroupKeys.suiteName
+    static let latestFrameFileName = AppGroupKeys.latestFrameFileName
 
     @MainActor
     static func makeAppState(

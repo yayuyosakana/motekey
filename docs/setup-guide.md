@@ -1,5 +1,15 @@
 # セットアップガイド
 
+## Phase3 Bootstrap の最小確認
+
+このリポジトリ単体では、まず Swift Package のコアモジュールをビルド確認する。
+
+```bash
+swift test
+```
+
+> このチェックは `HostApp/*` の画面実装や `KeyboardExtension/*` のUI実装を含まない「基盤モジュール」の健全性確認。
+
 ## 前提
 
 このアプリはazooKeyをベースに開発します。

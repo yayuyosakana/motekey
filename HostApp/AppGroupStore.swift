@@ -1,13 +1,8 @@
 import Foundation
+import MoteKeyShared
 
-struct AppGroupKeys {
-    static let suiteName = "group.com.motekey.shared"
-
-    static let textStyleRegistered = "textStyleRegistered"
-    static let textStyleSummary = "textStyleSummary"
-    static let relationRegistered = "relationRegistered"
+private enum LegacyAppGroupKeys {
     static let relationProfile = "relationProfile"
-    static let setupConfigured = "setupConfigured"
 }
 
 struct TextStyleProfile: Codable, Equatable {
@@ -56,6 +51,9 @@ struct AppGroupStore {
     func saveTextStyle(_ profile: TextStyleProfile) {
         defaults?.set(true, forKey: AppGroupKeys.textStyleRegistered)
         defaults?.set(profile.summary, forKey: AppGroupKeys.textStyleSummary)
+        if let data = try? encoder.encode(makeSharedTextStyleProfile(summary: profile.summary)) {
+            defaults?.set(data, forKey: AppGroupKeys.textStyleProfileData)
+        }
     }
 
     func loadTextStyleSummary() -> String {
@@ -68,16 +66,24 @@ struct AppGroupStore {
 
     func saveRelation(_ relation: RelationProfile) {
         defaults?.set(true, forKey: AppGroupKeys.relationRegistered)
-        if let data = try? encoder.encode(relation) {
-            defaults?.set(data, forKey: AppGroupKeys.relationProfile)
+        if let data = try? encoder.encode(makeSharedRelationProfile(from: relation)) {
+            defaults?.set(data, forKey: AppGroupKeys.relationProfileData)
+        }
+        if let legacyData = try? encoder.encode(relation) {
+            defaults?.set(legacyData, forKey: LegacyAppGroupKeys.relationProfile)
         }
     }
 
     func loadRelation() -> RelationProfile? {
-        guard let data = defaults?.data(forKey: AppGroupKeys.relationProfile) else {
+        if let sharedData = defaults?.data(forKey: AppGroupKeys.relationProfileData),
+           let sharedProfile = try? decoder.decode(MoteKeyShared.RelationProfile.self, from: sharedData) {
+            return makeHostRelationProfile(from: sharedProfile)
+        }
+
+        guard let legacyData = defaults?.data(forKey: LegacyAppGroupKeys.relationProfile) else {
             return nil
         }
-        return try? decoder.decode(RelationProfile.self, from: data)
+        return try? decoder.decode(RelationProfile.self, from: legacyData)
     }
 
     func isRelationRegistered() -> Bool {
@@ -90,5 +96,53 @@ struct AppGroupStore {
 
     func isSetupConfigured() -> Bool {
         defaults?.bool(forKey: AppGroupKeys.setupConfigured) ?? false
+    }
+
+    private func makeSharedTextStyleProfile(summary: String) -> MoteKeyShared.TextStyleProfile {
+        MoteKeyShared.TextStyleProfile(
+            tone_profile: .init(
+                summary: summary,
+                rules: [],
+                details: .init(
+                    ending_patterns: "",
+                    emoji_usage: "",
+                    empathy_style: "",
+                    suggestion_style: "",
+                    message_length: "",
+                    colloquial_style: ""
+                )
+            )
+        )
+    }
+
+    private func makeSharedRelationProfile(from relation: RelationProfile) -> MoteKeyShared.RelationProfile {
+        MoteKeyShared.RelationProfile(
+            nickname: relation.partnerNickname,
+            relationshipType: relation.relationshipType.rawValue,
+            datingStartDate: relation.datingStartDate,
+            marriageDate: relation.marriageDate,
+            birthdayMonth: relation.partnerBirthday?.month,
+            birthdayDay: relation.partnerBirthday?.day,
+            cautionNote: relation.cautionNote
+        )
+    }
+
+    private func makeHostRelationProfile(from shared: MoteKeyShared.RelationProfile) -> RelationProfile {
+        let birthday: MonthDay?
+        if let month = shared.birthdayMonth, let day = shared.birthdayDay {
+            birthday = MonthDay(month: month, day: day)
+        } else {
+            birthday = nil
+        }
+
+        return RelationProfile(
+            partnerNickname: shared.nickname,
+            relationshipType: RelationshipType(rawValue: shared.relationshipType) ?? .unknown,
+            datingStartDate: shared.datingStartDate,
+            marriageDate: shared.marriageDate,
+            partnerBirthday: birthday,
+            cautionNote: shared.cautionNote,
+            updatedAt: Date()
+        )
     }
 }
