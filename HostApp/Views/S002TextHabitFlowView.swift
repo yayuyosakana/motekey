@@ -1,28 +1,6 @@
 import SwiftUI
 
-struct TextHabitQuestion {
-    let scenario: String
-    let messages: [ChatMessage]
-}
-
-struct ChatMessage {
-    let text: String
-    let side: BubbleSide
-}
-
-enum BubbleSide {
-    case leading
-    case trailing
-}
-
-private let textHabitQuestions: [TextHabitQuestion] = HostCopy.S002.scenarios.map { scenario in
-        TextHabitQuestion(
-            scenario: scenario.title,
-            messages: scenario.messages.map { message in
-                ChatMessage(text: message.text, side: message.isUserSide ? .trailing : .leading)
-            }
-        )
-}
+private let textHabitQuestions = HostCopy.S002.scenarios
 
 struct S002TextHabitFlowView: View {
     @EnvironmentObject private var state: HostAppState
@@ -49,18 +27,18 @@ struct S002TextHabitFlowView: View {
             ProgressView(value: Double(questionIndex + 1), total: Double(textHabitQuestions.count))
                 .tint(.pink)
 
-            Text(question.scenario)
+            Text(question.title)
                 .font(.headline)
 
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing: 8) {
                         ForEach(Array(question.messages.enumerated()), id: \.offset) { _, message in
-                            bubbleRow(text: message.text, side: message.side)
+                            bubbleRow(text: message.text, isUserSide: message.isUserSide)
                         }
 
                         if let submittedReply {
-                            bubbleRow(text: submittedReply, side: .trailing)
+                            bubbleRow(text: submittedReply, isUserSide: true)
                                 .transition(.opacity)
                         }
 
@@ -107,19 +85,19 @@ struct S002TextHabitFlowView: View {
         }
     }
 
-    private func bubbleRow(text: String, side: BubbleSide) -> some View {
+    private func bubbleRow(text: String, isUserSide: Bool) -> some View {
         HStack {
-            if side == .trailing {
+            if isUserSide {
                 Spacer(minLength: 40)
             }
             Text(text)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
-                .background(side == .leading ? Color(.secondarySystemBackground) : Color.pink)
-                .foregroundStyle(side == .leading ? Color.primary : Color.white)
+                .background(isUserSide ? Color.pink : Color(.secondarySystemBackground))
+                .foregroundStyle(isUserSide ? Color.white : Color.primary)
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-            if side == .leading {
+            if !isUserSide {
                 Spacer(minLength: 40)
             }
         }
