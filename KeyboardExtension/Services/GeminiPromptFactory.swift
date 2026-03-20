@@ -11,7 +11,7 @@ enum GeminiPromptFactory {
 
     static func askUserPrompt(context: AskUserContext) -> String {
         let payload: [String: Any] = [
-            "chat_context": context.chatContext
+            "chat_context": chatContextJSONValue(from: context.chatContext)
         ]
 
         return """
@@ -34,21 +34,17 @@ enum GeminiPromptFactory {
         relationProfile: RelationProfile,
         todayDate: String
     ) -> String {
-        let payload: [String: Any] = [
-            "chat_context": chatContext,
-            "user_responses": answers
+        let userResponses = Dictionary(
+            uniqueKeysWithValues: answers
                 .sorted(by: { $0.key < $1.key })
-                .map { ["index": $0.key, "value": $0.value] },
-            "text_habit": [
-                "tone": textStyleProfile.tone,
-                "ending_style": textStyleProfile.endingStyle,
-                "emoji_style": textStyleProfile.emojiStyle
-            ],
-            "relation": [
-                "partner_name": relationProfile.partnerName,
-                "relationship_summary": relationProfile.relationshipSummary,
-                "caution_notes": relationProfile.cautionNotes
-            ],
+                .map { (String($0.key), $0.value) }
+        )
+
+        let payload: [String: Any] = [
+            "chat_context": chatContextJSONValue(from: chatContext),
+            "user_responses": userResponses,
+            "text_habit": textHabitPayload(from: textStyleProfile),
+            "relation": relationPayload(from: relationProfile),
             "today_date": todayDate
         ]
 
@@ -62,6 +58,77 @@ enum GeminiPromptFactory {
         入力:
         \(jsonString(from: payload))
         """
+    }
+
+    private static func chatContextJSONValue(from raw: String) -> Any {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return emptyChatContext()
+        }
+
+        if let data = trimmed.data(using: .utf8),
+           let jsonObject = try? JSONSerialization.jsonObject(with: data),
+           JSONSerialization.isValidJSONObject(jsonObject) {
+            return jsonObject
+        }
+
+        return manualInputChatContext(from: trimmed)
+    }
+
+    private static func textHabitPayload(from profile: TextStyleProfile) -> [String: Any] {
+        [
+            "tone_profile": [
+                "summary": profile.tone,
+                "rules": [],
+                "details": [
+                    "ending_patterns": profile.endingStyle,
+                    "emoji_usage": profile.emojiStyle,
+                    "empathy_style": "",
+                    "suggestion_style": "",
+                    "message_length": "",
+                    "colloquial_style": ""
+                ]
+            ]
+        ]
+    }
+
+    private static func relationPayload(from profile: RelationProfile) -> [String: Any] {
+        [
+            "nickname": profile.partnerName,
+            "relationshipType": profile.relationshipSummary,
+            "datingStartDate": NSNull(),
+            "marriageDate": NSNull(),
+            "birthdayMonth": NSNull(),
+            "birthdayDay": NSNull(),
+            "cautionNote": profile.cautionNotes
+        ]
+    }
+
+    private static func emptyChatContext() -> [String: Any] {
+        [
+            "chat_detected": false,
+            "app": "unknown",
+            "messages": [],
+            "last_speaker": NSNull(),
+            "last_message": NSNull()
+        ]
+    }
+
+    private static func manualInputChatContext(from text: String) -> [String: Any] {
+        [
+            "chat_detected": true,
+            "app": "manual_input",
+            "messages": [
+                [
+                    "speaker": "partner",
+                    "text": text,
+                    "date_label": NSNull(),
+                    "time": NSNull()
+                ]
+            ],
+            "last_speaker": "partner",
+            "last_message": text
+        ]
     }
 
     private static func jsonString(from payload: [String: Any]) -> String {
