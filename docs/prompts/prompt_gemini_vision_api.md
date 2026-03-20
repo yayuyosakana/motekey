@@ -81,3 +81,20 @@
 ```
 
 ※ `last_message` はスタンプ・メディアを除いた、最後のテキストメッセージを返す
+
+会話が検出できない / 画面がメッセージアプリでない場合は、必ず以下の形式で返してください。
+
+```json
+{
+  "chat_detected": false,
+  "app": "unknown",
+  "messages": [],
+  "last_speaker": null,
+  "last_message": null
+}
+```
+
+追加制約:
+- `messages` の各要素は `speaker`, `text`, `date_label`, `time` の4キーを持つこと
+- `speaker` は必ず `partner` または `me`
+- `date_label` と `time` は、画面に表示がなければ `null`

@@ -195,6 +195,16 @@
 
 会話が検出できない場合は `chat_detected: false` を返す。この場合 `messages` は空配列、`last_speaker` / `last_message` は `null` とする。
 
+```json
+{
+  "chat_detected": false,
+  "app": "unknown",
+  "messages": [],
+  "last_speaker": null,
+  "last_message": null
+}
+```
+
 #### ③ アスクユーザーQ1〜Q3一括生成のレスポンス
 
 ```json
