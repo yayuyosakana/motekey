@@ -119,8 +119,11 @@ struct S002TextHabitFlowView: View {
         guard !trimmed.isEmpty else { return }
 
         isSubmitting = true
+        HostHaptics.light()
         state.textHabitAnswers[questionIndex] = trimmed
-        submittedReply = trimmed
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) {
+            submittedReply = trimmed
+        }
         inputText = ""
 
         // 仕様に合わせて返信バブルを短時間表示してから次へ遷移する。
@@ -292,6 +295,7 @@ struct S002TextHabitLoadingView: View {
             state.clearTextHabitAnswers()
             state.resetToHome()
         } catch {
+            HostHaptics.error()
             if let localizedError = error as? LocalizedError, let description = localizedError.errorDescription {
                 errorMessage = description
             } else {

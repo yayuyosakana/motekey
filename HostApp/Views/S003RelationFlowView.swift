@@ -159,6 +159,7 @@ struct S003RelationFlowView: View {
                     .multilineTextAlignment(.center)
                     .foregroundStyle(.secondary)
                 Button(HostCopy.S003.backToHome) {
+                    HostHaptics.success()
                     state.resetToHome()
                 }
                 .buttonStyle(.borderedProminent)
