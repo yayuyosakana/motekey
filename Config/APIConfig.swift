@@ -4,30 +4,78 @@ import Foundation
 ///
 /// 【セットアップ手順】
 /// 1. `Config/Secrets.xcconfig` ファイルを作成（.gitignore済み）
-/// 2. 以下の行を追加: GEMINI_API_KEY = あなたのAPIキー
+/// 2. 以下の4行を追加:
+///    - GEMINI_API_KEY_TEXT_HABIT
+///    - GEMINI_API_KEY_VISION_CONTEXT
+///    - GEMINI_API_KEY_ASK_USER_QUESTION
+///    - GEMINI_API_KEY_REPLY_GENERATION
 /// 3. Xcode > Project Settings > Configurations で Secrets.xcconfig を適用
-/// 4. Info.plist に `GeminiAPIKey = $(GEMINI_API_KEY)` を追加
+/// 4. Info.plist に以下を追加:
+///    - GeminiAPIKeyTextHabit = $(GEMINI_API_KEY_TEXT_HABIT)
+///    - GeminiAPIKeyVisionContext = $(GEMINI_API_KEY_VISION_CONTEXT)
+///    - GeminiAPIKeyAskUserQuestion = $(GEMINI_API_KEY_ASK_USER_QUESTION)
+///    - GeminiAPIKeyReplyGeneration = $(GEMINI_API_KEY_REPLY_GENERATION)
 ///
 /// 【緊急時ハードコード】
 /// ハッカソン本番中に上記設定が間に合わない場合は、
-/// `hardcodedKey` に直接キーを入れてビルドしてください。
+/// Secrets.xcconfig 側に直接値を入れてビルドしてください。
 /// ただし絶対にコミットしないこと。
 enum APIConfig {
 
     // MARK: - Gemini API Key
 
-    /// Gemini API キー（本番）
-    /// Info.plist 経由で取得を試み、失敗した場合は hardcodedKey にフォールバック
+    enum GeminiCallType {
+        case textHabitAnalysis
+        case visionChatContextExtraction
+        case askUserQuestionGeneration
+        case replyGeneration
+    }
+
+    /// 既存コード向けの後方互換（単一キー参照）
     static var geminiAPIKey: String {
-        if let key = Bundle.main.object(forInfoDictionaryKey: "GeminiAPIKey") as? String,
-           !key.isEmpty,
-           key != "$(GEMINI_API_KEY)" {
-            return key
+        geminiAPIKey(for: .replyGeneration)
+    }
+
+    /// 呼び出し種別ごとに対応するGemini APIキーを取得する。
+    /// 専用キー未設定時は後方互換として `GeminiAPIKey`（単一キー）にフォールバックする。
+    static func geminiAPIKey(for callType: GeminiCallType) -> String {
+        let dedicatedInfoPlistKey: String
+        let dedicatedPlaceholder: String
+
+        switch callType {
+        case .textHabitAnalysis:
+            dedicatedInfoPlistKey = "GeminiAPIKeyTextHabit"
+            dedicatedPlaceholder = "$(GEMINI_API_KEY_TEXT_HABIT)"
+        case .visionChatContextExtraction:
+            dedicatedInfoPlistKey = "GeminiAPIKeyVisionContext"
+            dedicatedPlaceholder = "$(GEMINI_API_KEY_VISION_CONTEXT)"
+        case .askUserQuestionGeneration:
+            dedicatedInfoPlistKey = "GeminiAPIKeyAskUserQuestion"
+            dedicatedPlaceholder = "$(GEMINI_API_KEY_ASK_USER_QUESTION)"
+        case .replyGeneration:
+            dedicatedInfoPlistKey = "GeminiAPIKeyReplyGeneration"
+            dedicatedPlaceholder = "$(GEMINI_API_KEY_REPLY_GENERATION)"
         }
-        // ハッカソン緊急用: 以下に直接キーを入れる（コミット禁止）
-        let hardcodedKey = ""
-        assert(!hardcodedKey.isEmpty, "Gemini API キーが未設定です。Secrets.xcconfig を確認してください。")
-        return hardcodedKey
+
+        if let dedicated = resolvedInfoPlistValue(key: dedicatedInfoPlistKey, placeholder: dedicatedPlaceholder) {
+            return dedicated
+        }
+        if let legacy = resolvedInfoPlistValue(key: "GeminiAPIKey", placeholder: "$(GEMINI_API_KEY)") {
+            return legacy
+        }
+
+        assertionFailure("Gemini API キーが未設定です。Secrets.xcconfig と Info.plist を確認してください。")
+        return ""
+    }
+
+    private static func resolvedInfoPlistValue(key: String, placeholder: String) -> String? {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: key) as? String,
+              !value.isEmpty,
+              value != placeholder
+        else {
+            return nil
+        }
+        return value
     }
 
     // MARK: - Gemini API Endpoints

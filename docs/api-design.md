@@ -150,3 +150,16 @@
   ]
 }
 ```
+
+### 3.4 APIキーの用途別割り当て
+
+MVPではGemini APIキーを4用途に分離して運用する。
+
+| 呼び出し | Info.plistキー | xcconfig変数 |
+|----------|----------------|--------------|
+| ① テキストハビット抽出 | `GeminiAPIKeyTextHabit` | `GEMINI_API_KEY_TEXT_HABIT` |
+| ② 画面文脈抽出（Vision） | `GeminiAPIKeyVisionContext` | `GEMINI_API_KEY_VISION_CONTEXT` |
+| ③ アスクユーザーQ1〜Q3一括生成 | `GeminiAPIKeyAskUserQuestion` | `GEMINI_API_KEY_ASK_USER_QUESTION` |
+| ④ 返信文生成 | `GeminiAPIKeyReplyGeneration` | `GEMINI_API_KEY_REPLY_GENERATION` |
+
+専用キーが未設定の場合のみ、後方互換として共通キー `GeminiAPIKey`（`GEMINI_API_KEY`）をフォールバック利用してよい。

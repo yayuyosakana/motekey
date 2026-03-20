@@ -10,10 +10,15 @@
 ## Step 1: Gemini APIキーの取得
 
 1. [Google AI Studio](https://aistudio.google.com/) を開く
-2. 右上「Get API key」→「Create API key」
-3. 表示されたキーをコピーして手元に保管
+2. 右上「Get API key」→「Create API key」を4回実行して4キーを発行
+3. 用途ごとにキーを対応付けて手元に保管
 
-> Keyboard Extension・Broadcast Extension含め全ターゲットで同じキーを使います。
+| 用途 | キー名（推奨ラベル） |
+|------|----------------------|
+| テキストハビット抽出 | `TEXT_HABIT` |
+| 画面文脈抽出（Vision） | `VISION_CONTEXT` |
+| アスクユーザー質問生成 | `ASK_USER_QUESTION` |
+| 返信文生成 | `REPLY_GENERATION` |
 
 ---
 
@@ -37,7 +42,10 @@ cp Config/Secrets.xcconfig.template Config/Secrets.xcconfig
 `Config/Secrets.xcconfig` を開いてキーを貼り付け：
 
 ```
-GEMINI_API_KEY = AIza...あなたのキー...
+GEMINI_API_KEY_TEXT_HABIT = AIza...text-habit用...
+GEMINI_API_KEY_VISION_CONTEXT = AIza...vision-context用...
+GEMINI_API_KEY_ASK_USER_QUESTION = AIza...ask-user-question用...
+GEMINI_API_KEY_REPLY_GENERATION = AIza...reply-generation用...
 ```
 
 ---
@@ -99,7 +107,10 @@ LeftペインでプロジェクトルートNode → 「Info」タブ → 「Conf
 
 | Key | Value |
 |-----|-------|
-| `GeminiAPIKey` | `$(GEMINI_API_KEY)` |
+| `GeminiAPIKeyTextHabit` | `$(GEMINI_API_KEY_TEXT_HABIT)` |
+| `GeminiAPIKeyVisionContext` | `$(GEMINI_API_KEY_VISION_CONTEXT)` |
+| `GeminiAPIKeyAskUserQuestion` | `$(GEMINI_API_KEY_ASK_USER_QUESTION)` |
+| `GeminiAPIKeyReplyGeneration` | `$(GEMINI_API_KEY_REPLY_GENERATION)` |
 
 操作: ターゲット選択 → 「Info」タブ → 「Custom iOS Target Properties」の「+」ボタン
 
@@ -147,7 +158,7 @@ NSExtension > NSExtensionAttributes > RequestsOpenAccess = YES
 
 | 症状 | 原因 | 対処 |
 |------|------|------|
-| ビルドエラー: `GEMINI_API_KEY undefined` | xconfigがターゲットに未適用 | Step 7を確認 |
+| ビルドエラー: `GEMINI_API_KEY_* undefined` | xconfigがターゲットに未適用 | Step 7を確認 |
 | Keyboard Extensionがキーを読めない | ExtensionのInfo.plistにキー未追加 | Step 8を確認 |
 | App Group通信が動かない | 3ターゲットでApp Group IDが不一致 | Step 6を確認、IDを揃える |
 | Extension起動時にクラッシュ | メモリ超過（50MB制限） | technical-design.mdを参照 |
