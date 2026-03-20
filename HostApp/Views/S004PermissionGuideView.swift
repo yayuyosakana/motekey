@@ -15,6 +15,14 @@ struct S004PermissionGuideView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                HStack {
+                    Spacer()
+                    Image(systemName: "keyboard.badge.ellipsis")
+                        .font(.system(size: 48))
+                        .foregroundStyle(.pink)
+                    Spacer()
+                }
+
                 Text(HostCopy.S004.prepHeadline)
                     .font(.headline)
 

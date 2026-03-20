@@ -52,8 +52,13 @@ struct TextStyleProfile: Codable, Equatable {
     var runtimeEndingStyle: String { toneProfile.details.endingPatterns }
     var runtimeEmojiStyle: String { toneProfile.details.emojiUsage }
 
-    static func fallback(summary: String, updatedAt: Date = Date()) -> TextStyleProfile {
-        TextStyleProfile(
+    init(toneProfile: ToneProfile, updatedAt: Date? = nil) {
+        self.toneProfile = toneProfile
+        self.updatedAt = updatedAt
+    }
+
+    init(summary: String, updatedAt: Date? = nil) {
+        self.init(
             toneProfile: .init(
                 summary: summary,
                 rules: [],
@@ -68,6 +73,10 @@ struct TextStyleProfile: Codable, Equatable {
             ),
             updatedAt: updatedAt
         )
+    }
+
+    static func fallback(summary: String, updatedAt: Date = Date()) -> TextStyleProfile {
+        TextStyleProfile(summary: summary, updatedAt: updatedAt)
     }
 }
 

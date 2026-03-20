@@ -150,43 +150,126 @@ struct S002TextHabitLoadingView: View {
     @State private var started = false
     @State private var isAnalyzing = false
     @State private var errorMessage: String?
+    @State private var loadingInput = ""
+
+    private var loadingQuestion: S002ScenarioCopy {
+        textHabitQuestions[textHabitQuestions.count - 1]
+    }
+
+    private var loadingReply: String? {
+        guard let raw = state.textHabitAnswers[textHabitQuestions.count - 1] else {
+            return nil
+        }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
 
     var body: some View {
-        VStack(spacing: 12) {
-            if isAnalyzing {
-                ProgressView()
-                Text(HostCopy.S002.loadingMessage)
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-            } else if let errorMessage {
-                Text(errorMessage)
-                    .font(.body)
-                    .foregroundStyle(.red)
-                    .multilineTextAlignment(.center)
+        VStack(alignment: .leading, spacing: 16) {
+            Text("\(textHabitQuestions.count)/\(textHabitQuestions.count) シチュエーション")
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
-                HStack(spacing: 12) {
-                    Button(HostCopy.S002.retry) {
-                        Task {
-                            await startAnalysis()
-                        }
-                    }
-                    .buttonStyle(.borderedProminent)
+            ProgressView(value: Double(textHabitQuestions.count), total: Double(textHabitQuestions.count))
+                .tint(.pink)
 
-                    Button(HostCopy.S002.skip) {
-                        state.saveTextHabitSummary(HostCopy.S002.emptySummary)
-                        state.resetToHome()
+            Text(loadingQuestion.title)
+                .font(.headline)
+
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(Array(loadingQuestion.messages.enumerated()), id: \.offset) { _, message in
+                        bubbleRow(text: message.text, isUserSide: message.isUserSide)
                     }
-                    .buttonStyle(.bordered)
+
+                    if let loadingReply {
+                        bubbleRow(text: loadingReply, isUserSide: true)
+                    }
                 }
-            } else {
-                EmptyView()
             }
+
+            TextField(HostCopy.S002.placeholderReplyInput, text: $loadingInput, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .disabled(true)
+
+            Button(HostCopy.S002.send) {}
+                .buttonStyle(.borderedProminent)
+                .disabled(true)
+
+            Spacer()
         }
+        .opacity(0.5)
+        .disabled(true)
+        .overlay {
+            loadingOverlay
+        }
+        .padding()
         .navigationTitle(HostCopy.S002.loadingTitle)
+        .navigationBarTitleDisplayMode(.inline)
         .task {
             guard !started else { return }
             started = true
             await startAnalysis()
+        }
+    }
+
+    private var loadingOverlay: some View {
+        if isAnalyzing || errorMessage != nil {
+            ZStack {
+                Color.black.opacity(0.35)
+                    .ignoresSafeArea()
+
+                VStack(spacing: 12) {
+                    if isAnalyzing {
+                        ProgressView()
+                        Text(HostCopy.S002.loadingMessage)
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    } else if let errorMessage {
+                        Text(errorMessage)
+                            .font(.body)
+                            .foregroundStyle(.red)
+                            .multilineTextAlignment(.center)
+
+                        HStack(spacing: 12) {
+                            Button(HostCopy.S002.retry) {
+                                Task {
+                                    await startAnalysis()
+                                }
+                            }
+                            .buttonStyle(.borderedProminent)
+
+                            Button(HostCopy.S002.skip) {
+                                state.saveTextHabitSummary(HostCopy.S002.emptySummary)
+                                state.resetToHome()
+                            }
+                            .buttonStyle(.bordered)
+                        }
+                    }
+                }
+                .padding(16)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .padding(.horizontal, 20)
+            }
+        }
+    }
+
+    private func bubbleRow(text: String, isUserSide: Bool) -> some View {
+        HStack {
+            if isUserSide {
+                Spacer(minLength: 40)
+            }
+            Text(text)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(isUserSide ? Color.pink : Color(.secondarySystemBackground))
+                .foregroundStyle(isUserSide ? Color.white : Color.primary)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            if !isUserSide {
+                Spacer(minLength: 40)
+            }
         }
     }
 
