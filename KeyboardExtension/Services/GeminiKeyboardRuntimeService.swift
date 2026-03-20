@@ -1,5 +1,6 @@
 import Foundation
 import MoteKeyConfig
+import MoteKeyShared
 
 final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuestionGenerating, ReplyGenerating {
     private let session: URLSession
@@ -16,7 +17,6 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         let prompt = GeminiPromptFactory.visionPrompt()
         let text = try await generateContent(
             callType: .visionChatContextExtraction,
-            endpoint: APIConfig.geminiVisionEndpoint,
             parts: [
                 .init(text: prompt, inlineData: nil),
                 .init(
@@ -27,7 +27,7 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         )
 
         let jsonText = try extractJSONObject(from: text)
-        let payload = try decoder.decode(VisionChatContextResponse.self, from: Data(jsonText.utf8))
+        let payload = try decoder.decode(ChatContextPayload.self, from: Data(jsonText.utf8))
         guard payload.chat_detected else {
             throw GeminiServiceError.chatNotDetected
         }
@@ -40,15 +40,12 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         let prompt = GeminiPromptFactory.askUserPrompt(context: context)
         let text = try await generateContent(
             callType: .askUserQuestionGeneration,
-            endpoint: APIConfig.geminiTextEndpoint,
             parts: [.init(text: prompt, inlineData: nil)]
         )
 
         let jsonText = try extractJSONObject(from: text)
-        let payload = try decoder.decode(AskUserQuestionsResponse.self, from: Data(jsonText.utf8))
-        guard payload.questions.count == 3,
-              payload.questions.allSatisfy({ $0.options.count == 3 })
-        else {
+        let payload = try decoder.decode(AskUserQuestionsPayload.self, from: Data(jsonText.utf8))
+        guard payload.isValidForMVP else {
             throw RuntimeError.invalidQuestionResponse
         }
 
@@ -82,18 +79,17 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
 
         let text = try await generateContent(
             callType: .replyGeneration,
-            endpoint: APIConfig.geminiTextEndpoint,
             parts: [.init(text: prompt, inlineData: nil)]
         )
 
         let jsonText = try extractJSONObject(from: text)
-        let payload = try decoder.decode(ReplyCandidatesResponse.self, from: Data(jsonText.utf8))
+        let payload = try decoder.decode(ReplyCandidatesPayload.self, from: Data(jsonText.utf8))
+        guard payload.isValidForMVP else {
+            throw RuntimeError.invalidReplyResponse
+        }
         let candidates = payload.chips
             .map { ReplyCandidate(text: $0.text.trimmingCharacters(in: .whitespacesAndNewlines)) }
             .filter { !$0.text.isEmpty }
-        guard (2...5).contains(candidates.count) else {
-            throw RuntimeError.invalidReplyResponse
-        }
         return candidates
     }
 
@@ -106,9 +102,9 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
 
     private func generateContent(
         callType: APIConfig.GeminiCallType,
-        endpoint: String,
         parts: [GeminiGenerateContentRequest.Content.Part]
     ) async throws -> String {
+        let endpoint = APIConfig.geminiEndpoint(for: callType)
         guard var components = URLComponents(string: endpoint) else {
             throw GeminiServiceError.invalidURL
         }

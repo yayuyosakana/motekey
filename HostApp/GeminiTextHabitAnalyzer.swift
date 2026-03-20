@@ -69,7 +69,8 @@ struct GeminiTextHabitAnalyzer {
             throw AnalysisError.missingAPIKey
         }
 
-        guard let url = URL(string: "\(APIConfig.geminiTextEndpoint)?key=\(key)") else {
+        let endpoint = APIConfig.geminiEndpoint(for: .textHabitAnalysis)
+        guard let url = URL(string: "\(endpoint)?key=\(key)") else {
             throw AnalysisError.invalidResponse
         }
 

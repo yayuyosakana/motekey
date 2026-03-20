@@ -10,14 +10,12 @@ Gemini API 呼び出し層です。`AppState` が必要とする以下3用途を
 
 - `GeminiKeyboardRuntimeService.swift`
   - `VisionContextExtracting` / `AskUserQuestionGenerating` / `ReplyGenerating` を実装
-  - `APIConfig` の用途別APIキーを利用
+  - `APIConfig` の用途別APIキー + `geminiEndpoint(for:)` を利用
   - HTTP 10秒タイムアウト
   - HTTP 429 は2秒待機して1回だけ自動リトライ
-  - レスポンスからJSONオブジェクトを抽出してデコード
+  - レスポンスからJSONオブジェクトを抽出して `MoteKeyShared` スキーマへデコード
 - `GeminiWireModels.swift`
   - Gemini `generateContent` のRequest/Responseモデル
-- `GeminiDomainModels.swift`
-  - Vision/Q生成/返信生成のJSONペイロードモデル
 - `GeminiPromptFactory.swift`
   - 各用途のプロンプト組み立て
 - `GeminiJSONExtractor.swift`
