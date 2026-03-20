@@ -21,10 +21,6 @@ struct S003RelationFlowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(stepTitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-
             content
 
             Spacer()
@@ -38,7 +34,7 @@ struct S003RelationFlowView: View {
             }
         }
         .padding()
-        .navigationTitle("リレーションチェック")
+        .navigationTitle(stepNavigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             nickname = state.partnerNickname
@@ -157,13 +153,13 @@ struct S003RelationFlowView: View {
         }
     }
 
-    private var stepTitle: String {
+    private var stepNavigationTitle: String {
         switch step {
         case .nickname: return "ステップ 1 / 4"
         case .relationship: return "ステップ 2 / 4"
         case .datingDate: return "ステップ 3 / 4"
         case .birthdayAndCaution: return "ステップ 4 / 4"
-        case .done: return "完了"
+        case .done: return "登録完了"
         }
     }
 

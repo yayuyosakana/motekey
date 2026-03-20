@@ -134,12 +134,22 @@ struct S004TutorialView: View {
     @EnvironmentObject private var state: HostAppState
 
     var body: some View {
-        List {
-            Text("1. メッセージアプリを開く")
-            Text("2. 入力欄をタップしてキーボードを表示")
-            Text("3. 地球儀アイコンを長押し")
-            Text("4. モテキーを選択")
-            Text("5. mote+AI をタップして開始")
+        VStack {
+            List {
+                Text("1. メッセージアプリを開く")
+                Text("2. 入力欄をタップしてキーボードを表示")
+                Text("3. 地球儀アイコンを長押し")
+                Text("4. モテキーを選択")
+                Text("5. mote+AI をタップして開始")
+            }
+
+            Button("はじめる") {
+                state.markSetupConfigured()
+                state.resetToHome()
+            }
+            .buttonStyle(.borderedProminent)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 12)
         }
         .navigationTitle("使い方")
         .toolbar {
