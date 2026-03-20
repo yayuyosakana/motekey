@@ -65,6 +65,10 @@ struct S002TextHabitFlowView: View {
 
     @State private var questionIndex: Int
     @State private var inputText = ""
+    @State private var submittedReply: String?
+    @State private var isSubmitting = false
+
+    private let bottomAnchorID = "bottom-anchor"
 
     init(initialQuestionIndex: Int) {
         _questionIndex = State(initialValue: max(0, min(initialQuestionIndex, textHabitQuestions.count - 1)))
@@ -84,36 +88,45 @@ struct S002TextHabitFlowView: View {
             Text(question.scenario)
                 .font(.headline)
 
-            ScrollView {
-                VStack(spacing: 8) {
-                    ForEach(Array(question.messages.enumerated()), id: \.offset) { _, message in
-                        HStack {
-                            if message.side == .trailing {
-                                Spacer(minLength: 40)
-                            }
-                            Text(message.text)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 10)
-                                .background(message.side == .leading ? Color(.secondarySystemBackground) : Color.pink)
-                                .foregroundStyle(message.side == .leading ? Color.primary : Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 12))
-                            if message.side == .leading {
-                                Spacer(minLength: 40)
-                            }
+            ScrollViewReader { proxy in
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(Array(question.messages.enumerated()), id: \.offset) { _, message in
+                            bubbleRow(text: message.text, side: message.side)
                         }
+
+                        if let submittedReply {
+                            bubbleRow(text: submittedReply, side: .trailing)
+                                .transition(.opacity)
+                        }
+
+                        Color.clear
+                            .frame(height: 1)
+                            .id(bottomAnchorID)
+                    }
+                    .onAppear {
+                        scrollToBottom(proxy: proxy, animated: false)
+                    }
+                    .onChange(of: submittedReply) { _ in
+                        scrollToBottom(proxy: proxy, animated: true)
+                    }
+                    .onChange(of: questionIndex) { _ in
+                        scrollToBottom(proxy: proxy, animated: false)
                     }
                 }
             }
 
             TextField("返信を入力...", text: $inputText, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
+                .disabled(isSubmitting)
 
             Button("送信") {
-                submitAnswer()
+                Task {
+                    await submitAnswer()
+                }
             }
             .buttonStyle(.borderedProminent)
-            .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+            .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSubmitting)
 
             Spacer()
         }
@@ -125,16 +138,56 @@ struct S002TextHabitFlowView: View {
                 Button("スキップ") {
                     skipAllAndAnalyze()
                 }
+                .disabled(isSubmitting)
             }
         }
     }
 
-    private func submitAnswer() {
-        state.textHabitAnswers[questionIndex] = inputText
+    private func bubbleRow(text: String, side: BubbleSide) -> some View {
+        HStack {
+            if side == .trailing {
+                Spacer(minLength: 40)
+            }
+            Text(text)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .background(side == .leading ? Color(.secondarySystemBackground) : Color.pink)
+                .foregroundStyle(side == .leading ? Color.primary : Color.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            if side == .leading {
+                Spacer(minLength: 40)
+            }
+        }
+    }
+
+    private func scrollToBottom(proxy: ScrollViewProxy, animated: Bool) {
+        if animated {
+            withAnimation {
+                proxy.scrollTo(bottomAnchorID, anchor: .bottom)
+            }
+        } else {
+            proxy.scrollTo(bottomAnchorID, anchor: .bottom)
+        }
+    }
+
+    @MainActor
+    private func submitAnswer() async {
+        let trimmed = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        isSubmitting = true
+        state.textHabitAnswers[questionIndex] = trimmed
+        submittedReply = trimmed
         inputText = ""
+
+        // 仕様に合わせて返信バブルを短時間表示してから次へ遷移する。
+        try? await Task.sleep(for: .milliseconds(300))
 
         if questionIndex + 1 < textHabitQuestions.count {
             questionIndex += 1
+            submittedReply = nil
+            isSubmitting = false
         } else {
             state.navigationPath.append(HostRoute.textHabitLoading)
         }
