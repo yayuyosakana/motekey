@@ -11,7 +11,7 @@
   - 3問3択の質問検証
   - 質問生成失敗時は汎用3問にフォールバックして継続
   - fallback画面で手入力した文脈から質問生成フローを再開可能
-  - チップタップ時の compose 挿入（タップ順履歴を保持）
+  - チップタップ時の compose 挿入（`clearMarkedText()` → `insertText()`、タップ順履歴を保持）
 - `KeyboardRuntimeModels.swift`
   - runtime 状態・質問・候補モデル
 - `KeyboardRuntimeDependencies.swift`

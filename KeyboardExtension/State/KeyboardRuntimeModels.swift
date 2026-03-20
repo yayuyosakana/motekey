@@ -66,6 +66,4 @@ struct TextStyleProfile: Equatable, Sendable {
 
 struct AskUserContext: Equatable, Sendable {
     let chatContext: String
-    let textStyleProfile: TextStyleProfile
-    let relationProfile: RelationProfile
 }

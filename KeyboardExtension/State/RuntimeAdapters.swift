@@ -34,10 +34,19 @@ struct InMemoryProfileStore: ProfileStore {
 }
 
 final class TextDocumentComposeProxy: ComposeTextProxy {
+    private let clearMarkedTextHandler: () -> Void
     private let insertHandler: (String) -> Void
 
-    init(insertHandler: @escaping (String) -> Void) {
+    init(
+        clearMarkedTextHandler: @escaping () -> Void = {},
+        insertHandler: @escaping (String) -> Void
+    ) {
+        self.clearMarkedTextHandler = clearMarkedTextHandler
         self.insertHandler = insertHandler
+    }
+
+    func clearMarkedText() {
+        clearMarkedTextHandler()
     }
 
     func insertText(_ text: String) {

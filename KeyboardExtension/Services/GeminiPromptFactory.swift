@@ -11,17 +11,7 @@ enum GeminiPromptFactory {
 
     static func askUserPrompt(context: AskUserContext) -> String {
         let payload: [String: Any] = [
-            "chat_context": context.chatContext,
-            "text_habit": [
-                "tone": context.textStyleProfile.tone,
-                "ending_style": context.textStyleProfile.endingStyle,
-                "emoji_style": context.textStyleProfile.emojiStyle
-            ],
-            "relation": [
-                "partner_name": context.relationProfile.partnerName,
-                "relationship_summary": context.relationProfile.relationshipSummary,
-                "caution_notes": context.relationProfile.cautionNotes
-            ]
+            "chat_context": context.chatContext
         ]
 
         return """
