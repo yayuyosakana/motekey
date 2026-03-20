@@ -24,11 +24,50 @@ public enum APIConfig {
 
     // MARK: - Gemini API Key
 
-    public enum GeminiCallType {
+    public enum GeminiCallType: CaseIterable, Sendable {
         case textHabitAnalysis
         case visionChatContextExtraction
         case askUserQuestionGeneration
         case replyGeneration
+
+        fileprivate var dedicatedInfoPlistKey: String {
+            switch self {
+            case .textHabitAnalysis:
+                return "GeminiAPIKeyTextHabit"
+            case .visionChatContextExtraction:
+                return "GeminiAPIKeyVisionContext"
+            case .askUserQuestionGeneration:
+                return "GeminiAPIKeyAskUserQuestion"
+            case .replyGeneration:
+                return "GeminiAPIKeyReplyGeneration"
+            }
+        }
+
+        fileprivate var dedicatedPlaceholder: String {
+            switch self {
+            case .textHabitAnalysis:
+                return "$(GEMINI_API_KEY_TEXT_HABIT)"
+            case .visionChatContextExtraction:
+                return "$(GEMINI_API_KEY_VISION_CONTEXT)"
+            case .askUserQuestionGeneration:
+                return "$(GEMINI_API_KEY_ASK_USER_QUESTION)"
+            case .replyGeneration:
+                return "$(GEMINI_API_KEY_REPLY_GENERATION)"
+            }
+        }
+
+        fileprivate var dedicatedEnvironmentKey: String {
+            switch self {
+            case .textHabitAnalysis:
+                return "GEMINI_API_KEY_TEXT_HABIT"
+            case .visionChatContextExtraction:
+                return "GEMINI_API_KEY_VISION_CONTEXT"
+            case .askUserQuestionGeneration:
+                return "GEMINI_API_KEY_ASK_USER_QUESTION"
+            case .replyGeneration:
+                return "GEMINI_API_KEY_REPLY_GENERATION"
+            }
+        }
     }
 
     /// 既存コード向けの後方互換（単一キー参照）
@@ -49,40 +88,17 @@ public enum APIConfig {
         bundle: Bundle = .main,
         environment: [String: String] = ProcessInfo.processInfo.environment
     ) -> String {
-        let dedicatedInfoPlistKey: String
-        let dedicatedPlaceholder: String
-        let dedicatedEnvironmentKey: String
-
-        switch callType {
-        case .textHabitAnalysis:
-            dedicatedInfoPlistKey = "GeminiAPIKeyTextHabit"
-            dedicatedPlaceholder = "$(GEMINI_API_KEY_TEXT_HABIT)"
-            dedicatedEnvironmentKey = "GEMINI_API_KEY_TEXT_HABIT"
-        case .visionChatContextExtraction:
-            dedicatedInfoPlistKey = "GeminiAPIKeyVisionContext"
-            dedicatedPlaceholder = "$(GEMINI_API_KEY_VISION_CONTEXT)"
-            dedicatedEnvironmentKey = "GEMINI_API_KEY_VISION_CONTEXT"
-        case .askUserQuestionGeneration:
-            dedicatedInfoPlistKey = "GeminiAPIKeyAskUserQuestion"
-            dedicatedPlaceholder = "$(GEMINI_API_KEY_ASK_USER_QUESTION)"
-            dedicatedEnvironmentKey = "GEMINI_API_KEY_ASK_USER_QUESTION"
-        case .replyGeneration:
-            dedicatedInfoPlistKey = "GeminiAPIKeyReplyGeneration"
-            dedicatedPlaceholder = "$(GEMINI_API_KEY_REPLY_GENERATION)"
-            dedicatedEnvironmentKey = "GEMINI_API_KEY_REPLY_GENERATION"
-        }
-
         if let dedicated = resolvedInfoPlistValue(
             bundle: bundle,
-            key: dedicatedInfoPlistKey,
-            placeholder: dedicatedPlaceholder
+            key: callType.dedicatedInfoPlistKey,
+            placeholder: callType.dedicatedPlaceholder
         ) {
             return dedicated
         }
         if let dedicated = resolvedEnvironmentValue(
             environment: environment,
-            key: dedicatedEnvironmentKey,
-            placeholder: dedicatedPlaceholder
+            key: callType.dedicatedEnvironmentKey,
+            placeholder: callType.dedicatedPlaceholder
         ) {
             return dedicated
         }
@@ -107,14 +123,48 @@ public enum APIConfig {
         return ""
     }
 
+    /// 呼び出し種別ごとの専用キー（Info.plist / 環境変数）の有無を返す。
+    /// 旧来の共通キー (`GeminiAPIKey`, `GEMINI_API_KEY`) は判定対象外。
+    public static func hasDedicatedGeminiAPIKey(
+        for callType: GeminiCallType,
+        bundle: Bundle = .main,
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> Bool {
+        resolvedInfoPlistValue(
+            bundle: bundle,
+            key: callType.dedicatedInfoPlistKey,
+            placeholder: callType.dedicatedPlaceholder
+        ) != nil || resolvedEnvironmentValue(
+            environment: environment,
+            key: callType.dedicatedEnvironmentKey,
+            placeholder: callType.dedicatedPlaceholder
+        ) != nil
+    }
+
+    /// 専用キーが未設定の呼び出し種別を列挙する。
+    public static func missingDedicatedGeminiCallTypes(
+        bundle: Bundle = .main,
+        environment: [String: String] = ProcessInfo.processInfo.environment
+    ) -> [GeminiCallType] {
+        GeminiCallType.allCases.filter { callType in
+            !hasDedicatedGeminiAPIKey(
+                for: callType,
+                bundle: bundle,
+                environment: environment
+            )
+        }
+    }
+
     private static func resolvedInfoPlistValue(bundle: Bundle, key: String, placeholder: String) -> String? {
-        guard let value = bundle.object(forInfoDictionaryKey: key) as? String,
-              !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              value != placeholder
+        guard let value = bundle.object(forInfoDictionaryKey: key) as? String else {
+            return nil
+        }
+        let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty, normalized != placeholder
         else {
             return nil
         }
-        return value
+        return normalized
     }
 
     private static func resolvedEnvironmentValue(
@@ -122,16 +172,27 @@ public enum APIConfig {
         key: String,
         placeholder: String
     ) -> String? {
-        guard let value = environment[key],
-              !value.isEmpty,
-              value != placeholder
+        guard let value = environment[key] else {
+            return nil
+        }
+        let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty, normalized != placeholder
         else {
             return nil
         }
-        return value
+        return normalized
     }
 
     // MARK: - Gemini API Endpoints
+
+    public static func geminiEndpoint(for callType: GeminiCallType) -> String {
+        switch callType {
+        case .visionChatContextExtraction:
+            return geminiVisionEndpoint
+        case .textHabitAnalysis, .askUserQuestionGeneration, .replyGeneration:
+            return geminiTextEndpoint
+        }
+    }
 
     public static let geminiTextEndpoint =
         "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
