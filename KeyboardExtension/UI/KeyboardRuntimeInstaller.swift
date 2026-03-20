@@ -1,0 +1,44 @@
+#if canImport(UIKit)
+import UIKit
+import SwiftUI
+
+@MainActor
+enum KeyboardRuntimeInstaller {
+    static func makeAppState(
+        in inputViewController: UIInputViewController,
+        clearMarkedText: @escaping () -> Void = {}
+    ) -> AppState? {
+        KeyboardRuntimeFactory.makeAppState(
+            clearMarkedText: clearMarkedText,
+            insertText: { text in
+                inputViewController.textDocumentProxy.insertText(text)
+            }
+        )
+    }
+
+    @discardableResult
+    static func embed<BaseKeyboard: View>(
+        into parent: UIInputViewController,
+        appState: AppState,
+        @ViewBuilder baseKeyboard: @escaping () -> BaseKeyboard
+    ) -> UIHostingController<KeyboardRuntimeRootView> {
+        let hostingController = UIHostingController(
+            rootView: KeyboardRuntimeRootView(appState: appState, baseKeyboard: baseKeyboard)
+        )
+        hostingController.view.backgroundColor = .clear
+        hostingController.view.translatesAutoresizingMaskIntoConstraints = false
+
+        parent.addChild(hostingController)
+        parent.view.addSubview(hostingController.view)
+        NSLayoutConstraint.activate([
+            hostingController.view.leadingAnchor.constraint(equalTo: parent.view.leadingAnchor),
+            hostingController.view.trailingAnchor.constraint(equalTo: parent.view.trailingAnchor),
+            hostingController.view.topAnchor.constraint(equalTo: parent.view.topAnchor),
+            hostingController.view.bottomAnchor.constraint(equalTo: parent.view.bottomAnchor)
+        ])
+        hostingController.didMove(toParent: parent)
+
+        return hostingController
+    }
+}
+#endif

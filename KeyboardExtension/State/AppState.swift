@@ -130,7 +130,7 @@ final class AppState: ObservableObject {
     func closePermissionBlock() {
         guard currentScreen == .permissionBlock else { return }
         permissionIssue = .none
-        transition(to: generatedCandidates.isEmpty ? .keyboard : .stage)
+        switchToKeyboardAndCancelAskUserIfNeeded()
     }
 
     func resetAll() {
@@ -210,14 +210,16 @@ final class AppState: ObservableObject {
     }
 
     private func switchToKeyboardAndCancelAskUserIfNeeded() {
-        if currentScreen == .askUser
+        let shouldForceKeyboard = currentScreen == .askUser
             || currentScreen == .loading
             || currentScreen == .fallback
-            || currentScreen == .permissionBlock {
+            || currentScreen == .permissionBlock
+
+        if shouldForceKeyboard {
             cancelAskUserFlow()
         }
         displayMode = .chip
-        transition(to: generatedCandidates.isEmpty ? .keyboard : .stage)
+        transition(to: shouldForceKeyboard ? .keyboard : (generatedCandidates.isEmpty ? .keyboard : .stage))
     }
 
     private func transition(to next: KbdScreen) {
