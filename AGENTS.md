@@ -44,6 +44,14 @@ Do not silently invent product behavior when the docs disagree. Either align the
   - any in-flight task should be canceled
 - `全文表示` is for confirmation and selection of long-form candidates, not a separate send surface.
 
+## Git Commit Policy
+
+- Agents may commit freely without asking the user for confirmation before each commit.
+- Always include a meaningful commit message that describes the change.
+- Use conventional commit prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, etc.
+- Commit early and often — small, focused commits are preferred over large batches.
+- Do not push to remote unless explicitly asked.
+
 ## Constraints
 
 - Keep iOS keyboard extension limitations in mind:
