@@ -14,6 +14,8 @@ struct S003RelationFlowView: View {
     @State private var birthdayDay = 1
     @State private var cautionNote = ""
     @State private var isAgreed = false
+    @State private var showDatingDatePicker = false
+    @State private var showMarriageDatePicker = false
 
     init(initialStep: RelationStep = .nickname) {
         _step = State(initialValue: initialStep)
@@ -21,7 +23,13 @@ struct S003RelationFlowView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            content
+            if step == .birthdayAndCaution {
+                ScrollView {
+                    birthdayAndCautionContent
+                }
+            } else {
+                content
+            }
 
             Spacer()
 
@@ -38,6 +46,25 @@ struct S003RelationFlowView: View {
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             applyDraft(state.makeRelationDraft())
+        }
+        .onChange(of: relationshipType) { _, newValue in
+            if !newValue.requiresMarriageDate {
+                includeMarriageDate = false
+            }
+        }
+        .sheet(isPresented: $showDatingDatePicker) {
+            datePickerSheet(
+                title: HostCopy.S003.datingDateLabel,
+                selection: $datingStartDate,
+                onDone: { showDatingDatePicker = false }
+            )
+        }
+        .sheet(isPresented: $showMarriageDatePicker) {
+            datePickerSheet(
+                title: HostCopy.S003.marriageDateLabel,
+                selection: $marriageDate,
+                onDone: { showMarriageDatePicker = false }
+            )
         }
     }
 
@@ -57,28 +84,97 @@ struct S003RelationFlowView: View {
         case .relationship:
             Text(HostCopy.S003.relationPrompt)
                 .font(.headline)
-            Picker("relationship", selection: $relationshipType) {
+
+            VStack(spacing: 8) {
                 ForEach(RelationshipType.allCases) { type in
-                    Text(type.rawValue).tag(type)
+                    Button {
+                        relationshipType = type
+                    } label: {
+                        HStack {
+                            Text(type.rawValue)
+                            Spacer()
+                            if relationshipType == type {
+                                Image(systemName: "checkmark.circle.fill")
+                            }
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 10)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(relationshipType == type ? Color.pink.opacity(0.2) : Color(.secondarySystemBackground))
+                        .foregroundStyle(.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
+                    .buttonStyle(.plain)
                 }
             }
-            .pickerStyle(.inline)
         case .datingDate:
             Text(HostCopy.S003.datingDatePrompt)
                 .font(.headline)
-            DatePicker(HostCopy.S003.datingDateLabel, selection: $datingStartDate, displayedComponents: .date)
-                .datePickerStyle(.graphical)
+
+            dateDisplayButton(
+                title: HostCopy.S003.datingDateLabel,
+                value: formattedDate(datingStartDate)
+            ) {
+                showDatingDatePicker = true
+            }
 
             if relationshipType.requiresMarriageDate {
-                Toggle(HostCopy.S003.marriageToggle, isOn: $includeMarriageDate)
+                Text(HostCopy.S003.marriageNote)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                HStack(spacing: 8) {
+                    choiceChip(
+                        title: HostCopy.S003.datingOnly,
+                        isSelected: !includeMarriageDate
+                    ) {
+                        includeMarriageDate = false
+                    }
+
+                    choiceChip(
+                        title: HostCopy.S003.marriageToggle,
+                        isSelected: includeMarriageDate
+                    ) {
+                        includeMarriageDate = true
+                    }
+                }
+
                 if includeMarriageDate {
-                    DatePicker(HostCopy.S003.marriageDateLabel, selection: $marriageDate, displayedComponents: .date)
-                        .datePickerStyle(.compact)
+                    dateDisplayButton(
+                        title: HostCopy.S003.marriageDateLabel,
+                        value: formattedDate(marriageDate)
+                    ) {
+                        showMarriageDatePicker = true
+                    }
                 }
             }
         case .birthdayAndCaution:
+            EmptyView()
+        case .done:
+            VStack(alignment: .center, spacing: 12) {
+                CheckmarkAnimationView()
+                Text(HostCopy.S003.doneTitle)
+                    .font(.title2)
+                Text(HostCopy.S003.doneMessage)
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(.secondary)
+                Button(HostCopy.S003.backToHome) {
+                    state.resetToHome()
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+
+    private var birthdayAndCautionContent: some View {
+        VStack(alignment: .leading, spacing: 16) {
             Text(HostCopy.S003.birthdayAndCautionPrompt)
                 .font(.headline)
+            Text(HostCopy.S003.birthdayDescription)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
             Toggle(HostCopy.S003.birthdayToggle, isOn: $hasBirthday)
             if hasBirthday {
                 MonthDayPicker(month: $birthdayMonth, day: $birthdayDay)
@@ -88,6 +184,14 @@ struct S003RelationFlowView: View {
                 }
                 .buttonStyle(.bordered)
             }
+
+            Divider()
+
+            Text(HostCopy.S003.cautionPrompt)
+                .font(.headline)
+            Text(HostCopy.S003.cautionDescription)
+                .font(.caption)
+                .foregroundStyle(.secondary)
 
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $cautionNote)
@@ -123,17 +227,9 @@ struct S003RelationFlowView: View {
             }
             .buttonStyle(.bordered)
 
+            Divider()
+
             Toggle(HostCopy.S003.agreement, isOn: $isAgreed)
-        case .done:
-            CheckmarkAnimationView()
-            Text(HostCopy.S003.doneTitle)
-                .font(.title2)
-            Text(HostCopy.S003.doneMessage)
-                .foregroundStyle(.secondary)
-            Button(HostCopy.S003.backToHome) {
-                state.resetToHome()
-            }
-            .buttonStyle(.borderedProminent)
         }
     }
 
@@ -154,6 +250,9 @@ struct S003RelationFlowView: View {
         case .relationship:
             step = .datingDate
         case .datingDate:
+            if !relationshipType.requiresMarriageDate {
+                includeMarriageDate = false
+            }
             step = .birthdayAndCaution
         case .birthdayAndCaution:
             state.saveRelationDraft(
@@ -184,5 +283,61 @@ struct S003RelationFlowView: View {
         birthdayMonth = draft.birthday.month
         birthdayDay = draft.birthday.day
         cautionNote = draft.cautionNote
+    }
+
+    private func choiceChip(title: String, isSelected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title)
+                .font(.subheadline)
+                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
+                .background(isSelected ? Color.pink : Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func dateDisplayButton(title: String, value: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                Text(value)
+                    .font(.headline)
+                    .foregroundStyle(.pink)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color(.secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ja_JP")
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.dateFormat = "yyyy年 M月 d日"
+        return formatter.string(from: date)
+    }
+
+    private func datePickerSheet(title: String, selection: Binding<Date>, onDone: @escaping () -> Void) -> some View {
+        VStack(spacing: 12) {
+            Text(title)
+                .font(.headline)
+            DatePicker("", selection: selection, displayedComponents: .date)
+                .datePickerStyle(.wheel)
+                .labelsHidden()
+            Button("決定") {
+                onDone()
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+        .presentationDetents([.height(320)])
     }
 }
