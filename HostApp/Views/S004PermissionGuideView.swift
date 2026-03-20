@@ -11,12 +11,6 @@ struct S004PermissionGuideView: View {
     @State private var showError = false
     @State private var hasReturnedFromSettings = false
 
-    private let keyboardIdentifierHints: [String] = [
-        "motekey",
-        "com.motekey.app.keyboard",
-        "com.motekey.app"
-    ]
-
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
@@ -91,7 +85,7 @@ struct S004PermissionGuideView: View {
 #if canImport(UIKit)
         hasMotekeyEnabled = UITextInputMode.activeInputModes.contains {
             let primaryLanguage = ($0.primaryLanguage ?? "").lowercased()
-            return keyboardIdentifierHints.contains { hint in
+            return HostCopy.S004.keyboardIdentifierHints.contains { hint in
                 primaryLanguage.contains(hint.lowercased())
             }
         }

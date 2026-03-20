@@ -141,5 +141,10 @@ enum HostCopy {
         static let tutorialStep3 = "3. 地球儀アイコンを長押し"
         static let tutorialStep4 = "4. モテキーを選択"
         static let tutorialStep5 = "5. mote+AI をタップして開始"
+        static let keyboardIdentifierHints = [
+            "motekey",
+            "com.motekey.app.keyboard",
+            "com.motekey.app"
+        ]
     }
 }
