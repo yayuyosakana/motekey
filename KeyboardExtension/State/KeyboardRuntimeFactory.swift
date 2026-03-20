@@ -6,7 +6,10 @@ struct KeyboardRuntimeFactory {
     static let latestFrameFileName = "latest_frame.jpg"
 
     @MainActor
-    static func makeAppState(insertText: @escaping (String) -> Void) -> AppState? {
+    static func makeAppState(
+        clearMarkedText: @escaping () -> Void = {},
+        insertText: @escaping (String) -> Void
+    ) -> AppState? {
         guard let appGroupURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: appGroupSuiteName)
         else {
@@ -17,7 +20,10 @@ struct KeyboardRuntimeFactory {
         let frameLoader = FileLatestFrameLoader(frameURL: frameURL)
         let profileStore = AppGroupProfileStore(suiteName: appGroupSuiteName)
         let permissionChecker = AppGroupPermissionChecker(suiteName: appGroupSuiteName)
-        let composeProxy = TextDocumentComposeProxy(insertHandler: insertText)
+        let composeProxy = TextDocumentComposeProxy(
+            clearMarkedTextHandler: clearMarkedText,
+            insertHandler: insertText
+        )
 
         let geminiService = GeminiKeyboardRuntimeService()
 
@@ -33,7 +39,10 @@ struct KeyboardRuntimeFactory {
     }
 
     @MainActor
-    static func makeMockAppState(insertText: @escaping (String) -> Void = { _ in }) -> AppState {
+    static func makeMockAppState(
+        clearMarkedText: @escaping () -> Void = {},
+        insertText: @escaping (String) -> Void = { _ in }
+    ) -> AppState {
         let frameLoader = InMemoryFrameLoader()
         let profileStore = InMemoryProfileStore(
             textStyleProfile: .init(tone: "friendly", endingStyle: "casual", emojiStyle: "light"),
@@ -46,7 +55,10 @@ struct KeyboardRuntimeFactory {
             replyGenerator: MockReplyGenerator(),
             profileStore: profileStore,
             permissionChecker: StaticPermissionChecker(),
-            composeProxy: TextDocumentComposeProxy(insertHandler: insertText)
+            composeProxy: TextDocumentComposeProxy(
+                clearMarkedTextHandler: clearMarkedText,
+                insertHandler: insertText
+            )
         )
     }
 }

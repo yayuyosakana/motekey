@@ -27,6 +27,7 @@ protocol ProfileStore {
 }
 
 protocol ComposeTextProxy: AnyObject {
+    func clearMarkedText()
     func insertText(_ text: String)
 }
 

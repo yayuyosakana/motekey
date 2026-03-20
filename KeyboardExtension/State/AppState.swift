@@ -79,6 +79,7 @@ final class AppState: ObservableObject {
     }
 
     func insertChip(_ candidate: ReplyCandidate) {
+        composeProxy?.clearMarkedText()
         composeProxy?.insertText(candidate.text)
         tappedChipHistory.append(candidate)
     }

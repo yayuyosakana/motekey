@@ -15,17 +15,22 @@ struct AskUserLayerView: View {
                     .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
-                VStack(spacing: 8) {
-                    ForEach(Array(question.options.enumerated()), id: \.offset) { _, option in
-                        Button(action: { appState.selectOption(option.value) }) {
-                            Text(option.label)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 10)
-                                .padding(.horizontal, 12)
-                                .background(Color.white)
-                                .clipShape(RoundedRectangle(cornerRadius: 10))
+                Divider()
+
+                ScrollView {
+                    VStack(spacing: 8) {
+                        ForEach(Array(question.options.enumerated()), id: \.offset) { index, option in
+                            Button(action: { appState.selectOption(option.value) }) {
+                                Text("\(index + 1). \(option.label)")
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.vertical, 10)
+                                    .padding(.horizontal, 12)
+                                    .frame(minHeight: 44)
+                                    .background(Color.white)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             } else {
