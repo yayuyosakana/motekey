@@ -244,7 +244,33 @@
 
 `chips` 配列は2〜5件（最大5件）とする。
 
-### 3.5 APIキーの用途別割り当て
+### 3.5 スキーマバリデーション規約（実装用）
+
+レスポンス受信時は以下を最低限検証し、条件を満たさない場合は `technical-design.md` のフォールバック方針に従う。
+
+#### ② 画面文脈抽出
+
+- `chat_detected` は必須（Boolean）
+- `messages` は必須（Array）。`chat_detected=false` の場合は空配列を許可
+- 各 `messages[i]` は `speaker`（`"partner"` or `"me"`）と `text`（空文字不可）を必須
+- `date_label` / `time` は `String | null`
+- `last_speaker` / `last_message` は `String | null`。`last_message` はスタンプ・メディアのみの末尾を除外した最後のテキスト
+
+#### ③ アスクユーザーQ1〜Q3一括生成
+
+- `questions` は必須、件数は厳密に3
+- 各 `questions[i].question` は空文字不可
+- 各 `questions[i].options` は件数が厳密に3
+- 各 `options[j]` は `label`（表示文言）と `value`（英語スネークケース）を必須
+- `value` は同一質問内で重複不可
+
+#### ④ 返信文生成
+
+- `chips` は必須、件数は2〜5
+- 各 `chips[i].text` は空文字不可
+- 受信順を表示順・タップ挿入順として扱う（並び替えUIはMVP対象外）
+
+### 3.6 APIキーの用途別割り当て
 
 MVPではGemini APIキーを4用途に分離して運用する。
 
