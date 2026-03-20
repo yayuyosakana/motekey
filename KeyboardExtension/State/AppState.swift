@@ -161,10 +161,13 @@ final class AppState: ObservableObject {
         flowID = UUID()
 
         isAIProcessing = false
+        fallbackReason = .none
+        permissionIssue = .none
         chatContext = ""
         askUserQuestions = []
         askUserAnswers = [:]
         currentQuestionIndex = 0
+        manualFallbackInput = ""
         manualFallbackValidationMessage = nil
 
         displayMode = .chip
@@ -206,7 +209,10 @@ final class AppState: ObservableObject {
     }
 
     private func switchToKeyboardAndCancelAskUserIfNeeded() {
-        if currentScreen == .askUser || currentScreen == .loading {
+        if currentScreen == .askUser
+            || currentScreen == .loading
+            || currentScreen == .fallback
+            || currentScreen == .permissionBlock {
             cancelAskUserFlow()
         }
         displayMode = .chip
@@ -261,13 +267,7 @@ final class AppState: ObservableObject {
             }
             let contextText = try await visionExtractor.extractChatContext(imageData: frameData)
 
-            let textStyleProfile = profileStore.loadTextStyleProfile()
-            let relationProfile = profileStore.loadRelationProfile()
-            let context = AskUserContext(
-                chatContext: contextText,
-                textStyleProfile: textStyleProfile,
-                relationProfile: relationProfile
-            )
+            let context = AskUserContext(chatContext: contextText)
 
             let questions: [AskUserQuestion]
             do {
@@ -324,13 +324,7 @@ final class AppState: ObservableObject {
 
     private func runManualFallbackAskUserFlow(chatContext: String, flowID: UUID) async {
         do {
-            let textStyleProfile = profileStore.loadTextStyleProfile()
-            let relationProfile = profileStore.loadRelationProfile()
-            let context = AskUserContext(
-                chatContext: chatContext,
-                textStyleProfile: textStyleProfile,
-                relationProfile: relationProfile
-            )
+            let context = AskUserContext(chatContext: chatContext)
 
             let questions: [AskUserQuestion]
             do {
