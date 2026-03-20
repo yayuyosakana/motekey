@@ -83,12 +83,7 @@ struct S004PermissionGuideView: View {
 
     private func checkKeyboardPermission(updateErrorState: Bool) {
 #if canImport(UIKit)
-        hasMotekeyEnabled = UITextInputMode.activeInputModes.contains {
-            let primaryLanguage = ($0.primaryLanguage ?? "").lowercased()
-            return HostCopy.S004.keyboardIdentifierHints.contains { hint in
-                primaryLanguage.contains(hint.lowercased())
-            }
-        }
+        hasMotekeyEnabled = state.isMotekeyEnabled(activeInputModes: UITextInputMode.activeInputModes)
         showError = updateErrorState && hasReturnedFromSettings && !hasMotekeyEnabled
 #else
         hasMotekeyEnabled = false

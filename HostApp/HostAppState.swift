@@ -1,5 +1,8 @@
 import Foundation
 import SwiftUI
+#if canImport(UIKit)
+import UIKit
+#endif
 
 @MainActor
 final class HostAppState: ObservableObject {
@@ -107,6 +110,17 @@ final class HostAppState: ObservableObject {
         markSetupConfigured()
         resetToHome()
     }
+
+    #if canImport(UIKit)
+    func isMotekeyEnabled(activeInputModes: [UITextInputMode]) -> Bool {
+        activeInputModes.contains { inputMode in
+            let primaryLanguage = (inputMode.primaryLanguage ?? "").lowercased()
+            return HostCopy.S004.keyboardIdentifierHints.contains { hint in
+                primaryLanguage.contains(hint.lowercased())
+            }
+        }
+    }
+    #endif
 
     func resetToHome() {
         navigationPath = NavigationPath()
