@@ -12,6 +12,7 @@ Gemini API 呼び出し層です。`AppState` が必要とする以下3用途を
   - `VisionContextExtracting` / `AskUserQuestionGenerating` / `ReplyGenerating` を実装
   - `APIConfig` の用途別APIキーを利用
   - HTTP 10秒タイムアウト
+  - HTTP 429 は2秒待機して1回だけ自動リトライ
   - レスポンスからJSONオブジェクトを抽出してデコード
 - `GeminiWireModels.swift`
   - Gemini `generateContent` のRequest/Responseモデル

@@ -113,9 +113,7 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         }
 
         let apiKey = APIConfig.geminiAPIKey(for: callType)
-        components.queryItems = [
-            URLQueryItem(name: "key", value: apiKey)
-        ]
+        components.queryItems = [URLQueryItem(name: "key", value: apiKey)]
 
         guard let url = components.url else {
             throw GeminiServiceError.invalidURL
@@ -132,16 +130,36 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         )
         request.httpBody = try encoder.encode(body)
 
-        let (data, response) = try await session.data(for: request)
+        let data = try await requestWithSingleRetryIfRateLimited(request)
+        return try parseResponseText(data: data)
+    }
 
-        guard let httpResponse = response as? HTTPURLResponse else {
+    private func requestWithSingleRetryIfRateLimited(_ request: URLRequest) async throws -> Data {
+        let (firstData, firstResponse) = try await session.data(for: request)
+        guard let firstHTTP = firstResponse as? HTTPURLResponse else {
             throw GeminiServiceError.emptyResponse
         }
 
-        guard (200..<300).contains(httpResponse.statusCode) else {
-            throw GeminiServiceError.invalidHTTPStatus(httpResponse.statusCode)
+        if (200..<300).contains(firstHTTP.statusCode) {
+            return firstData
         }
 
+        if firstHTTP.statusCode == 429 {
+            try await Task.sleep(nanoseconds: 2_000_000_000)
+            let (retryData, retryResponse) = try await session.data(for: request)
+            guard let retryHTTP = retryResponse as? HTTPURLResponse else {
+                throw GeminiServiceError.emptyResponse
+            }
+            guard (200..<300).contains(retryHTTP.statusCode) else {
+                throw GeminiServiceError.invalidHTTPStatus(retryHTTP.statusCode)
+            }
+            return retryData
+        }
+
+        throw GeminiServiceError.invalidHTTPStatus(firstHTTP.statusCode)
+    }
+
+    private func parseResponseText(data: Data) throws -> String {
         let decoded = try decoder.decode(GeminiGenerateContentResponse.self, from: data)
         let text = decoded.candidates?
             .compactMap { $0.content?.parts }
@@ -153,7 +171,6 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         guard let text, !text.isEmpty else {
             throw GeminiServiceError.emptyResponse
         }
-
         return text
     }
 }
