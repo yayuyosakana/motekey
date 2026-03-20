@@ -6,8 +6,8 @@ S-005〜S-007 の keyboard runtime フロー向け SwiftUI 骨組みです。
   - stateに応じて ask-user / loading / stage / 全文 / fallback を重ねる
   - `baseKeyboard` を外部注入可能（azooKey本体Viewを差し込める）
 - `BottomActionBarView`
-  - `mote+AI` / `キーボード` / `全文表示` の3タブ
-  - `キーボード` タップ時は `AppState` 側で ask-user 中断・task cancel
+  - 左に地球儀（入力モード切替）、中央に `mote+AI`、右に `キーボード` / `全文表示` スライダーを表示
+  - `キーボード` への切替時は `AppState` 側で ask-user 中断・task cancel
 - `StageLayerView`
   - チップタップで compose へ挿入
   - チップを `Double(index) * 0.05` の遅延で順次表示

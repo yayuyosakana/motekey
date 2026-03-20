@@ -42,7 +42,13 @@ enum KeyboardRuntimeInstaller {
         @ViewBuilder baseKeyboard: @escaping () -> BaseKeyboard
     ) -> UIHostingController<KeyboardRuntimeRootView> {
         let hostingController = UIHostingController(
-            rootView: KeyboardRuntimeRootView(appState: appState, baseKeyboard: baseKeyboard)
+            rootView: KeyboardRuntimeRootView(
+                appState: appState,
+                onAdvanceInputMode: {
+                    parent.advanceToNextInputMode()
+                },
+                baseKeyboard: baseKeyboard
+            )
         )
         hostingController.view.backgroundColor = .clear
         hostingController.view.translatesAutoresizingMaskIntoConstraints = false

@@ -3,18 +3,25 @@ import SwiftUI
 struct KeyboardRuntimeRootView: View {
     @ObservedObject var appState: AppState
     private let baseKeyboardView: AnyView
+    private let onAdvanceInputMode: () -> Void
 
-    init(appState: AppState) {
+    init(
+        appState: AppState,
+        onAdvanceInputMode: @escaping () -> Void = {}
+    ) {
         self.appState = appState
         self.baseKeyboardView = AnyView(DefaultKeyboardBodyPlaceholderView())
+        self.onAdvanceInputMode = onAdvanceInputMode
     }
 
     init<BaseKeyboard: View>(
         appState: AppState,
+        onAdvanceInputMode: @escaping () -> Void = {},
         @ViewBuilder baseKeyboard: () -> BaseKeyboard
     ) {
         self.appState = appState
         self.baseKeyboardView = AnyView(baseKeyboard())
+        self.onAdvanceInputMode = onAdvanceInputMode
     }
 
     var body: some View {
@@ -53,7 +60,10 @@ struct KeyboardRuntimeRootView: View {
                 }
             }
 
-            BottomActionBarView(appState: appState)
+            BottomActionBarView(
+                appState: appState,
+                onAdvanceInputMode: onAdvanceInputMode
+            )
         }
         .animation(.easeInOut(duration: 0.2), value: appState.currentScreen)
     }
