@@ -9,6 +9,13 @@ struct S004PermissionGuideView: View {
     @State private var hasMotekeyEnabled = false
     @State private var hasAcknowledgedScreenRecording = false
     @State private var showError = false
+    @State private var hasReturnedFromSettings = false
+
+    private let keyboardIdentifierHints: [String] = [
+        "motekey",
+        "com.motekey.app.keyboard",
+        "com.motekey.app"
+    ]
 
     var body: some View {
         ScrollView {
@@ -70,24 +77,28 @@ struct S004PermissionGuideView: View {
         .navigationTitle("使用準備")
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
-            checkKeyboardPermission()
+            checkKeyboardPermission(updateErrorState: false)
         }
 #if canImport(UIKit)
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            checkKeyboardPermission()
+            hasReturnedFromSettings = true
+            checkKeyboardPermission(updateErrorState: true)
         }
 #endif
     }
 
-    private func checkKeyboardPermission() {
+    private func checkKeyboardPermission(updateErrorState: Bool) {
 #if canImport(UIKit)
         hasMotekeyEnabled = UITextInputMode.activeInputModes.contains {
-            ($0.primaryLanguage ?? "").localizedCaseInsensitiveContains("motekey")
+            let primaryLanguage = ($0.primaryLanguage ?? "").lowercased()
+            return keyboardIdentifierHints.contains { hint in
+                primaryLanguage.contains(hint.lowercased())
+            }
         }
-        showError = !hasMotekeyEnabled
+        showError = updateErrorState && hasReturnedFromSettings && !hasMotekeyEnabled
 #else
         hasMotekeyEnabled = false
-        showError = true
+        showError = updateErrorState
 #endif
     }
 
