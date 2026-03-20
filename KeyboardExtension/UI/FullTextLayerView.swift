@@ -39,6 +39,8 @@ struct FullTextLayerView: View {
                                             .foregroundStyle(.secondary)
                                         Text(candidate.text)
                                             .font(.body)
+                                            .lineLimit(nil)
+                                            .fixedSize(horizontal: false, vertical: true)
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                     .padding(10)
