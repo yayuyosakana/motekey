@@ -8,6 +8,7 @@ struct S004PermissionGuideView: View {
 
     @State private var hasMotekeyEnabled = false
     @State private var hasAcknowledgedScreenRecording = false
+    @State private var showError = false
 
     var body: some View {
         ScrollView {
@@ -15,10 +16,16 @@ struct S004PermissionGuideView: View {
                 Text("キーボードと画面収録の準備をお願いします")
                     .font(.headline)
 
-                Group {
-                    Text("1. iOS設定でモテキーを追加し、フルアクセスを許可")
-                    Text("2. コントロールセンターから画面収録を開始")
-                    Text("3. LINEに戻ってモテキーを利用")
+                Text("`mote+AI` を使うために、キーボードの有効化と画面収録の開始が必要です")
+                    .foregroundStyle(.secondary)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("1. キーボードを有効にする")
+                        .font(.subheadline.bold())
+                    Text("1) iOSの設定アプリを開く")
+                    Text("2) 一般 > キーボード > キーボード")
+                    Text("3) 新しいキーボードを追加 > モテキー")
+                    Text("4) モテキー > フルアクセスを許可 をオン")
                 }
                 .foregroundStyle(.secondary)
 
@@ -26,6 +33,18 @@ struct S004PermissionGuideView: View {
                     openSettings()
                 }
                 .buttonStyle(.bordered)
+
+                Divider()
+
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("2. 画面収録を開始する")
+                        .font(.subheadline.bold())
+                    Text("1) コントロールセンターを開く")
+                    Text("2) 画面収録を長押し")
+                    Text("3) モテキーを選択して開始")
+                    Text("4) LINEに戻る")
+                }
+                .foregroundStyle(.secondary)
 
                 Toggle("画面収録の開始手順を確認した", isOn: $hasAcknowledgedScreenRecording)
 
@@ -35,10 +54,15 @@ struct S004PermissionGuideView: View {
                 .buttonStyle(.borderedProminent)
                 .disabled(!(hasMotekeyEnabled && hasAcknowledgedScreenRecording))
 
-                if !hasMotekeyEnabled {
-                    Text("キーボードの追加が未完了です。設定後にアプリへ戻って再確認してください。")
+                if showError {
+                    Text("キーボードの追加またはフルアクセス許可が完了していないようです。")
                         .font(.caption)
                         .foregroundStyle(.red)
+
+                    Button("もう一度設定を開く") {
+                        openSettings()
+                    }
+                    .buttonStyle(.bordered)
                 }
             }
             .padding()
@@ -60,8 +84,10 @@ struct S004PermissionGuideView: View {
         hasMotekeyEnabled = UITextInputMode.activeInputModes.contains {
             ($0.primaryLanguage ?? "").localizedCaseInsensitiveContains("motekey")
         }
+        showError = !hasMotekeyEnabled
 #else
         hasMotekeyEnabled = false
+        showError = true
 #endif
     }
 

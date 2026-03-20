@@ -59,6 +59,10 @@ struct GeminiTextHabitAnalyzer {
     }
 
     func analyze(samples: [String]) async throws -> String {
+        try await analyze(samples: samples, hasRetried: false)
+    }
+
+    private func analyze(samples: [String], hasRetried: Bool) async throws -> String {
         let key = APIConfig.geminiAPIKey(for: .textHabitAnalysis)
         guard !key.isEmpty else {
             throw AnalysisError.missingAPIKey
@@ -89,6 +93,10 @@ struct GeminiTextHabitAnalyzer {
         case 200:
             break
         case 429:
+            if !hasRetried {
+                try await Task.sleep(for: .seconds(2))
+                return try await analyze(samples: samples, hasRetried: true)
+            }
             throw AnalysisError.rateLimited
         case 500...599:
             throw AnalysisError.serverError
