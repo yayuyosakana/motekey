@@ -6,6 +6,7 @@
 
 - `AppState.swift`
   - 画面状態（keyboard / askUser / loading / stage / fullText / fallback）
+  - `mote+AI` 起動前に権限判定し、未許可なら `permissionBlock` に遷移
   - `キーボード` タブ切替時の ask-user 中断 + in-flight task cancel
   - 3問3択の質問検証
   - 質問生成失敗時は汎用3問にフォールバックして継続

@@ -15,5 +15,7 @@ S-005〜S-007 の keyboard runtime フロー向け SwiftUI 骨組みです。
   - 3問3択を順次表示
 - `LoadingVeilView` / `FallbackLayerView`
   - 進行中と失敗時の表示
+- `PermissionBlockLayerView`
+  - フルアクセス/画面収録の未許可時に案内表示
 
 現状は target 未接続のため、次段で keyboard extension 実体に統合する。

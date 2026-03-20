@@ -30,6 +30,10 @@ protocol ComposeTextProxy: AnyObject {
     func insertText(_ text: String)
 }
 
+protocol PermissionChecking {
+    func currentPermissionIssue() -> PermissionIssue
+}
+
 enum RuntimeError: Error {
     case invalidQuestionResponse
     case invalidReplyResponse

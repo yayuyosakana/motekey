@@ -70,3 +70,36 @@ struct AppGroupProfileStore: ProfileStore {
         )
     }
 }
+
+struct StaticPermissionChecker: PermissionChecking {
+    let issue: PermissionIssue
+
+    init(issue: PermissionIssue = .none) {
+        self.issue = issue
+    }
+
+    func currentPermissionIssue() -> PermissionIssue {
+        issue
+    }
+}
+
+struct AppGroupPermissionChecker: PermissionChecking {
+    private let defaults: UserDefaults
+
+    init(suiteName: String) {
+        self.defaults = UserDefaults(suiteName: suiteName) ?? .standard
+    }
+
+    func currentPermissionIssue() -> PermissionIssue {
+        let hasFullAccess = defaults.object(forKey: "permission.fullAccessGranted") as? Bool ?? true
+        let hasScreenRecording = defaults.object(forKey: "permission.screenRecordingGranted") as? Bool ?? true
+
+        if !hasFullAccess {
+            return .fullAccessDenied
+        }
+        if !hasScreenRecording {
+            return .screenRecordingDenied
+        }
+        return .none
+    }
+}

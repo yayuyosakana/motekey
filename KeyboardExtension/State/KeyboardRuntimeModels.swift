@@ -31,6 +31,12 @@ enum FallbackReason: Equatable {
     case apiError
 }
 
+enum PermissionIssue: Equatable {
+    case none
+    case fullAccessDenied
+    case screenRecordingDenied
+}
+
 struct AskUserOption: Equatable, Sendable {
     let label: String
     let value: String

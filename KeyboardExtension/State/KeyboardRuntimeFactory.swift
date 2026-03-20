@@ -16,6 +16,7 @@ struct KeyboardRuntimeFactory {
         let frameURL = appGroupURL.appendingPathComponent(latestFrameFileName)
         let frameLoader = FileLatestFrameLoader(frameURL: frameURL)
         let profileStore = AppGroupProfileStore(suiteName: appGroupSuiteName)
+        let permissionChecker = AppGroupPermissionChecker(suiteName: appGroupSuiteName)
         let composeProxy = TextDocumentComposeProxy(insertHandler: insertText)
 
         let geminiService = GeminiKeyboardRuntimeService()
@@ -26,6 +27,7 @@ struct KeyboardRuntimeFactory {
             questionGenerator: geminiService,
             replyGenerator: geminiService,
             profileStore: profileStore,
+            permissionChecker: permissionChecker,
             composeProxy: composeProxy
         )
     }
@@ -43,6 +45,7 @@ struct KeyboardRuntimeFactory {
             questionGenerator: MockQuestionGenerator(),
             replyGenerator: MockReplyGenerator(),
             profileStore: profileStore,
+            permissionChecker: StaticPermissionChecker(),
             composeProxy: TextDocumentComposeProxy(insertHandler: insertText)
         )
     }

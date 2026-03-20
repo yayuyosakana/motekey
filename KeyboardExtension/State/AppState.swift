@@ -9,6 +9,7 @@ final class AppState: ObservableObject {
 
     @Published var isAIProcessing = false
     @Published var fallbackReason: FallbackReason = .none
+    @Published var permissionIssue: PermissionIssue = .none
 
     @Published var chatContext = ""
     @Published var askUserQuestions: [AskUserQuestion] = []
@@ -25,6 +26,7 @@ final class AppState: ObservableObject {
     private let questionGenerator: AskUserQuestionGenerating
     private let replyGenerator: ReplyGenerating
     private let profileStore: ProfileStore
+    private let permissionChecker: PermissionChecking
     private weak var composeProxy: ComposeTextProxy?
     private var flowID = UUID()
 
@@ -34,6 +36,7 @@ final class AppState: ObservableObject {
         questionGenerator: AskUserQuestionGenerating,
         replyGenerator: ReplyGenerating,
         profileStore: ProfileStore,
+        permissionChecker: PermissionChecking,
         composeProxy: ComposeTextProxy?
     ) {
         self.frameLoader = frameLoader
@@ -41,6 +44,7 @@ final class AppState: ObservableObject {
         self.questionGenerator = questionGenerator
         self.replyGenerator = replyGenerator
         self.profileStore = profileStore
+        self.permissionChecker = permissionChecker
         self.composeProxy = composeProxy
     }
 
@@ -96,12 +100,24 @@ final class AppState: ObservableObject {
         switchToKeyboardAndCancelAskUserIfNeeded()
     }
 
+    func retryAfterPermissionGrant() {
+        guard currentScreen == .permissionBlock else { return }
+        handleBottomTabTap(.moteAI)
+    }
+
+    func closePermissionBlock() {
+        guard currentScreen == .permissionBlock else { return }
+        permissionIssue = .none
+        transition(to: generatedCandidates.isEmpty ? .keyboard : .stage)
+    }
+
     func resetAll() {
         generationTask?.cancel()
         generationTask = nil
 
         isAIProcessing = false
         fallbackReason = .none
+        permissionIssue = .none
 
         chatContext = ""
         askUserQuestions = []
@@ -136,6 +152,12 @@ final class AppState: ObservableObject {
 
     private func startAskUserFlow() {
         guard !isAIProcessing else { return }
+        let issue = permissionChecker.currentPermissionIssue()
+        guard issue == .none else {
+            permissionIssue = issue
+            transition(to: .permissionBlock)
+            return
+        }
 
         cancelAskUserFlow()
         isAIProcessing = true

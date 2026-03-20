@@ -32,6 +32,11 @@ struct KeyboardRuntimeRootView: View {
                     FallbackLayerView(appState: appState)
                         .transition(.opacity)
                 }
+
+                if appState.currentScreen == .permissionBlock {
+                    PermissionBlockLayerView(appState: appState)
+                        .transition(.opacity)
+                }
             }
 
             BottomActionBarView(appState: appState)
