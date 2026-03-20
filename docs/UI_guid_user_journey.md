@@ -1261,7 +1261,7 @@ final class AppState: ObservableObject {
 
     // ── AI処理フロー ──────────────────────────────────────
     @Published var isAIProcessing: Bool = false
-    @Published var chatContext: String = ""            // Gemini Vision API で抽出したチャット文脈
+    @Published var chatContext: ChatContext = .empty   // Gemini Vision API で抽出した構造化チャット文脈
     @Published var askUserAnswers: [Int: String] = [:] // [questionIndex: 選択した value]
     @Published var currentQuestionIndex: Int = 0
     @Published var askUserQuestions: [AskUserQuestion] = []  // ③ Q1〜Q3一括生成APIから取得
@@ -1285,7 +1285,7 @@ final class AppState: ObservableObject {
         generationTask?.cancel()
         generationTask = nil
         isAIProcessing = false
-        chatContext = ""
+        chatContext = .empty
         askUserAnswers = [:]
         currentQuestionIndex = 0
         askUserQuestions = []
@@ -1299,7 +1299,7 @@ final class AppState: ObservableObject {
         generationTask?.cancel()
         generationTask = nil
         isAIProcessing = false
-        chatContext = ""
+        chatContext = .empty
         askUserAnswers = [:]
         currentQuestionIndex = 0
         askUserQuestions = []
@@ -1317,6 +1317,45 @@ struct AskUserQuestion {
     let index: Int
     let text: String
     let options: [AskUserOption]   // 常に3件
+}
+
+// ※ api-design.md の ② 画面文脈抽出 レスポンスフォーマットに準拠
+struct ChatMessage: Codable {
+    let speaker: String      // "partner" | "me"
+    let text: String
+    let dateLabel: String?
+    let time: String?
+
+    enum CodingKeys: String, CodingKey {
+        case speaker
+        case text
+        case dateLabel = "date_label"
+        case time
+    }
+}
+
+struct ChatContext: Codable {
+    let chatDetected: Bool
+    let app: String
+    let messages: [ChatMessage]
+    let lastSpeaker: String?
+    let lastMessage: String?
+
+    enum CodingKeys: String, CodingKey {
+        case chatDetected = "chat_detected"
+        case app
+        case messages
+        case lastSpeaker = "last_speaker"
+        case lastMessage = "last_message"
+    }
+
+    static let empty = ChatContext(
+        chatDetected: false,
+        app: "unknown",
+        messages: [],
+        lastSpeaker: nil,
+        lastMessage: nil
+    )
 }
 ```
 
