@@ -84,7 +84,11 @@ struct S004PermissionGuideView: View {
     private func checkKeyboardPermission(updateErrorState: Bool) {
 #if canImport(UIKit)
         hasMotekeyEnabled = state.isMotekeyEnabled(activeInputModes: UITextInputMode.activeInputModes)
-        showError = updateErrorState && hasReturnedFromSettings && !hasMotekeyEnabled
+        showError = state.shouldShowKeyboardPermissionError(
+            updateErrorState: updateErrorState,
+            hasReturnedFromSettings: hasReturnedFromSettings,
+            isMotekeyEnabled: hasMotekeyEnabled
+        )
 #else
         hasMotekeyEnabled = false
         showError = updateErrorState

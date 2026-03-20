@@ -120,6 +120,14 @@ final class HostAppState: ObservableObject {
             }
         }
     }
+
+    func shouldShowKeyboardPermissionError(
+        updateErrorState: Bool,
+        hasReturnedFromSettings: Bool,
+        isMotekeyEnabled: Bool
+    ) -> Bool {
+        updateErrorState && hasReturnedFromSettings && !isMotekeyEnabled
+    }
     #endif
 
     func resetToHome() {
