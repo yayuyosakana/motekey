@@ -77,6 +77,25 @@ final class AppState: ObservableObject {
         tappedChipHistory.append(candidate)
     }
 
+    func showStage() {
+        guard !generatedCandidates.isEmpty else {
+            transition(to: .keyboard)
+            return
+        }
+        displayMode = .chip
+        transition(to: .stage)
+    }
+
+    func retryFromFallback() {
+        guard currentScreen == .fallback else { return }
+        handleBottomTabTap(.moteAI)
+    }
+
+    func closeFallback() {
+        guard currentScreen == .fallback else { return }
+        switchToKeyboardAndCancelAskUserIfNeeded()
+    }
+
     func resetAll() {
         generationTask?.cancel()
         generationTask = nil
