@@ -51,6 +51,7 @@ Do not silently invent product behavior when the docs disagree. Either align the
 - Use conventional commit prefixes: `feat:`, `fix:`, `docs:`, `chore:`, `refactor:`, `test:`, etc.
 - Commit early and often — small, focused commits are preferred over large batches.
 - Do not push to remote unless explicitly asked.
+- One commit can cover a large, coherent chunk of work — don't artificially split small related changes.
 
 ## Constraints
 
@@ -363,3 +364,16 @@ Ask subagents to end with:
 4. `Suggested next step`
 
 This keeps multi-agent integration manageable.
+
+## Worktree / Parallel Agent Completion Protocol
+
+Each agent runs in its own git worktree and has no visibility into other agents' progress. Because of this:
+
+- **Do not wait for or check on other agents.** You cannot see their status.
+- **When your assigned scope is fully done, you are done.** Commit all changes, write the reporting format above, and finish.
+- **Leave a completion summary as the final commit message body.** Include:
+  - what was accomplished
+  - any open risks or unresolved items
+  - suggested follow-up work (if any)
+- **Do not assume other agents have finished or will finish.** Your work must be self-contained and mergeable on its own.
+- **Prefer larger, meaningful units of work per session.** It is better to complete an entire feature area or doc alignment pass in one go than to stop early and hand off fragments. Take on as much as you can within your assigned scope.
