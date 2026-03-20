@@ -13,6 +13,8 @@
   - runtime 状態・質問・候補モデル
 - `KeyboardRuntimeDependencies.swift`
   - Gemini/Frame/Profile/Compose の依存プロトコル
+- `KeyboardRuntimeFactory.swift`
+  - App Group と Gemini service を束ねて `AppState` を生成する入口
 
 ## 仕様との対応
 
