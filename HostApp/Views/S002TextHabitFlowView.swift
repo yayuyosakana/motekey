@@ -92,34 +92,75 @@ struct S002TextHabitFlowView: View {
 struct S002TextHabitLoadingView: View {
     @EnvironmentObject private var state: HostAppState
     @State private var started = false
+    @State private var isAnalyzing = false
+    @State private var errorMessage: String?
 
     var body: some View {
         VStack(spacing: 12) {
-            ProgressView()
-            Text("テキストハビットを解析中...")
-                .font(.body)
-                .foregroundStyle(.secondary)
+            if isAnalyzing {
+                ProgressView()
+                Text("テキストハビットを解析中...")
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+            } else if let errorMessage {
+                Text(errorMessage)
+                    .font(.body)
+                    .foregroundStyle(.red)
+                    .multilineTextAlignment(.center)
+
+                HStack(spacing: 12) {
+                    Button("もう一度試す") {
+                        Task {
+                            await startAnalysis()
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+
+                    Button("スキップ") {
+                        state.saveTextHabitSummary("入力なし（後で再登録可能）")
+                        state.resetToHome()
+                    }
+                    .buttonStyle(.bordered)
+                }
+            } else {
+                EmptyView()
+            }
         }
         .navigationTitle("解析中")
         .task {
             guard !started else { return }
             started = true
-            try? await Task.sleep(for: .seconds(1))
+            await startAnalysis()
+        }
+    }
 
-            let nonEmptyAnswers = state.textHabitAnswers
-                .values
-                .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                .filter { !$0.isEmpty }
+    @MainActor
+    private func startAnalysis() async {
+        isAnalyzing = true
+        errorMessage = nil
 
-            let summary: String
-            if nonEmptyAnswers.isEmpty {
-                summary = "入力なし（後で再登録可能）"
-            } else {
-                summary = "登録済み（\(nonEmptyAnswers.count)件のサンプル）"
-            }
+        let nonEmptyAnswers = state.textHabitAnswers
+            .values
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
 
+        if nonEmptyAnswers.isEmpty {
+            state.saveTextHabitSummary("入力なし（後で再登録可能）")
+            state.resetToHome()
+            return
+        }
+
+        do {
+            let summary = try await GeminiTextHabitAnalyzer().analyze(samples: nonEmptyAnswers)
             state.saveTextHabitSummary(summary)
             state.resetToHome()
+        } catch {
+            if let localizedError = error as? LocalizedError, let description = localizedError.errorDescription {
+                errorMessage = description
+            } else {
+                errorMessage = "解析に失敗しました。時間を置いて再試行してください。"
+            }
+            isAnalyzing = false
         }
     }
 }
