@@ -22,8 +22,8 @@ struct HostRootView: View {
         case .textHabitLoading:
             S002TextHabitLoadingView()
                 .environmentObject(state)
-        case .relation:
-            S003RelationFlowView()
+        case .relation(let step):
+            S003RelationFlowView(initialStep: step)
                 .environmentObject(state)
         case .keyboardPermission:
             S004PermissionGuideView()

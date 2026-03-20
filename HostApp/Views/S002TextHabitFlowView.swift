@@ -2,20 +2,62 @@ import SwiftUI
 
 struct TextHabitQuestion {
     let scenario: String
-    let partnerMessage: String
+    let messages: [ChatMessage]
+}
+
+struct ChatMessage {
+    let text: String
+    let side: BubbleSide
+}
+
+enum BubbleSide {
+    case leading
+    case trailing
 }
 
 private let textHabitQuestions: [TextHabitQuestion] = [
-    .init(scenario: "デート提案", partnerMessage: "今夜、どこか外食いかない？"),
-    .init(scenario: "愚痴・共感", partnerMessage: "ちょっと悲しいことがあって、聞いてほしい"),
-    .init(scenario: "仕事の愚痴", partnerMessage: "今日も残業だった…もう疲れた"),
-    .init(scenario: "週末の予定", partnerMessage: "今週末、何する？"),
-    .init(scenario: "ちょっとした喧嘩後", partnerMessage: "さっきはごめんね。言いすぎた"),
-    .init(scenario: "不安な気持ち", partnerMessage: "最近、私のこと好き？"),
-    .init(scenario: "体調不良", partnerMessage: "なんか頭痛がひどくて…"),
-    .init(scenario: "嬉しい報告", partnerMessage: "やった！仕事でめっちゃ褒められた！"),
-    .init(scenario: "悩み相談", partnerMessage: "友達と最近うまくいってなくて…"),
-    .init(scenario: "趣味・買い物報告", partnerMessage: "かわいい服見つけたんだけど、ちょっと高くて迷ってる")
+    .init(scenario: "デート提案", messages: [
+        .init(text: "今夜、どこか外食いかない？", side: .leading),
+        .init(text: "いいよ！どこ行こうか", side: .trailing),
+        .init(text: "決めていいよ！", side: .leading)
+    ]),
+    .init(scenario: "愚痴・共感", messages: [
+        .init(text: "ちょっと悲しいことがあって、聞いてほしい", side: .leading)
+    ]),
+    .init(scenario: "仕事の愚痴", messages: [
+        .init(text: "今日も残業だった…もう疲れた", side: .leading),
+        .init(text: "お疲れ。大変だったね", side: .trailing),
+        .init(text: "なんか頑張る気力もなくなってきた", side: .leading)
+    ]),
+    .init(scenario: "週末の予定", messages: [
+        .init(text: "今週末、何する？", side: .leading),
+        .init(text: "特に決めてないけど、どっか行く？", side: .trailing),
+        .init(text: "うーん、家でのんびりでもいいかな", side: .leading)
+    ]),
+    .init(scenario: "ちょっとした喧嘩後", messages: [
+        .init(text: "さっきはごめんね。言いすぎた", side: .leading)
+    ]),
+    .init(scenario: "不安な気持ち", messages: [
+        .init(text: "最近、私のこと好き？", side: .leading)
+    ]),
+    .init(scenario: "体調不良", messages: [
+        .init(text: "なんか頭痛がひどくて…", side: .leading),
+        .init(text: "大丈夫？何かできることある？", side: .trailing),
+        .init(text: "大丈夫だよ、心配してくれてありがと", side: .leading)
+    ]),
+    .init(scenario: "嬉しい報告", messages: [
+        .init(text: "やった！仕事でめっちゃ褒められた！", side: .leading)
+    ]),
+    .init(scenario: "悩み相談", messages: [
+        .init(text: "友達と最近うまくいってなくて…", side: .leading),
+        .init(text: "何かあったの？", side: .trailing),
+        .init(text: "向こうから急に冷たくなった気がして、理由もわからなくて不安", side: .leading)
+    ]),
+    .init(scenario: "趣味・買い物報告", messages: [
+        .init(text: "かわいい服見つけたんだけど、ちょっと高くて迷ってる", side: .leading),
+        .init(text: "いくらくらい？", side: .trailing),
+        .init(text: "1万5千円…。似合うと思う？写真送る", side: .leading)
+    ])
 ]
 
 struct S002TextHabitFlowView: View {
@@ -36,14 +78,33 @@ struct S002TextHabitFlowView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
+            ProgressView(value: Double(questionIndex + 1), total: 10)
+                .tint(.pink)
+
             Text(question.scenario)
                 .font(.headline)
 
-            Text(question.partnerMessage)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+            ScrollView {
+                VStack(spacing: 8) {
+                    ForEach(Array(question.messages.enumerated()), id: \.offset) { _, message in
+                        HStack {
+                            if message.side == .trailing {
+                                Spacer(minLength: 40)
+                            }
+                            Text(message.text)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 10)
+                                .background(message.side == .leading ? Color(.secondarySystemBackground) : Color.pink)
+                                .foregroundStyle(message.side == .leading ? Color.primary : Color.white)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            if message.side == .leading {
+                                Spacer(minLength: 40)
+                            }
+                        }
+                    }
+                }
+            }
 
             TextField("返信を入力...", text: $inputText, axis: .vertical)
                 .textFieldStyle(.roundedBorder)

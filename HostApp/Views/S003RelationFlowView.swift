@@ -3,7 +3,7 @@ import SwiftUI
 struct S003RelationFlowView: View {
     @EnvironmentObject private var state: HostAppState
 
-    @State private var step: RelationStep = .nickname
+    @State private var step: RelationStep
     @State private var nickname: String = ""
     @State private var relationshipType: RelationshipType = .unknown
     @State private var datingStartDate = Date()
@@ -14,6 +14,10 @@ struct S003RelationFlowView: View {
     @State private var birthdayDay = 1
     @State private var cautionNote = ""
     @State private var isAgreed = false
+
+    init(initialStep: RelationStep = .nickname) {
+        _step = State(initialValue: initialStep)
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
