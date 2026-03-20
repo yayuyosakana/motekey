@@ -125,6 +125,7 @@ struct S003RelationFlowView: View {
 
             Toggle(HostCopy.S003.agreement, isOn: $isAgreed)
         case .done:
+            CheckmarkAnimationView()
             Text(HostCopy.S003.doneTitle)
                 .font(.title2)
             Text(HostCopy.S003.doneMessage)
