@@ -66,6 +66,23 @@ final class HostAppState: ObservableObject {
         textStyleSummary = profile.summary
     }
 
+    func beginTextHabitRegistration() {
+        textHabitAnswers = [:]
+    }
+
+    func clearTextHabitAnswers() {
+        textHabitAnswers = [:]
+    }
+
+    func orderedNonEmptyTextHabitAnswers(questionCount: Int) -> [String] {
+        guard questionCount > 0 else { return [] }
+        return (0..<questionCount).compactMap { index in
+            guard let raw = textHabitAnswers[index] else { return nil }
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            return trimmed.isEmpty ? nil : trimmed
+        }
+    }
+
     func saveRelationProfile() {
         let nickname = partnerNickname.isEmpty ? HostCopy.Common.defaultPartnerName : partnerNickname
         let profile = RelationProfile(

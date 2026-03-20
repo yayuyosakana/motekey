@@ -19,6 +19,7 @@ struct S001HomeView: View {
                     .padding(.top, 8)
 
                 Button {
+                    state.beginTextHabitRegistration()
                     state.navigationPath.append(HostRoute.textHabit(questionIndex: 0))
                 } label: {
                     card(

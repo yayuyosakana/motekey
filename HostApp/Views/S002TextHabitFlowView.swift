@@ -137,9 +137,7 @@ struct S002TextHabitFlowView: View {
 
     private func skipAllAndAnalyze() {
         for index in textHabitQuestions.indices {
-            if state.textHabitAnswers[index] == nil {
-                state.textHabitAnswers[index] = ""
-            }
+            state.textHabitAnswers[index] = ""
         }
         state.navigationPath.append(HostRoute.textHabitLoading)
     }
@@ -241,6 +239,7 @@ struct S002TextHabitLoadingView: View {
 
                             Button(HostCopy.S002.skip) {
                                 state.saveTextHabitSummary(HostCopy.S002.emptySummary)
+                                state.clearTextHabitAnswers()
                                 state.resetToHome()
                             }
                             .buttonStyle(.bordered)
@@ -278,13 +277,11 @@ struct S002TextHabitLoadingView: View {
         isAnalyzing = true
         errorMessage = nil
 
-        let nonEmptyAnswers = state.textHabitAnswers
-            .values
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-            .filter { !$0.isEmpty }
+        let nonEmptyAnswers = state.orderedNonEmptyTextHabitAnswers(questionCount: textHabitQuestions.count)
 
         if nonEmptyAnswers.isEmpty {
             state.saveTextHabitProfile(.fallback(summary: HostCopy.S002.emptySummary))
+            state.clearTextHabitAnswers()
             state.resetToHome()
             return
         }
@@ -292,6 +289,7 @@ struct S002TextHabitLoadingView: View {
         do {
             let profile = try await GeminiTextHabitAnalyzer().analyze(samples: nonEmptyAnswers)
             state.saveTextHabitProfile(profile)
+            state.clearTextHabitAnswers()
             state.resetToHome()
         } catch {
             if let localizedError = error as? LocalizedError, let description = localizedError.errorDescription {
