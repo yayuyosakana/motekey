@@ -2150,9 +2150,7 @@ extension AppState {
 
             // ③ チャット文脈をもとに Q1〜Q3 を一括生成（1回のAPI呼び出し）
             let questions = try await GeminiService.shared.generateAskUserQuestions(
-                chatContext: extractedContext,
-                textStyleProfile: loadTextStyleProfile(),
-                relationProfile: loadRelationProfile()
+                chatContext: extractedContext
             )
 
             await MainActor.run {
@@ -2519,7 +2517,7 @@ struct RelationProfile: Codable {
 
 ---
 
-*Document Version: 1.3*
+*Document Version: 1.4*
 *対象アプリ: モテキー*
 *前提: 要件定義書 v1.7（requirements.md）*
 *更新日: 2026-03-21*
