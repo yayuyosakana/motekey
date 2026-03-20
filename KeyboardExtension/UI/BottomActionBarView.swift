@@ -58,7 +58,7 @@ struct BottomActionBarView: View {
 
     @ViewBuilder
     private func sliderTab(title: String, tab: BottomTab, disabled: Bool) -> some View {
-        let isSelected = tab == .fullText ? appState.currentScreen == .fullText : appState.currentScreen != .fullText
+        let isSelected = tab == .fullText ? appState.isFullTextTabActive : appState.isKeyboardTabActive
         Button(action: {
             appState.handleBottomTabTap(tab)
         }) {
