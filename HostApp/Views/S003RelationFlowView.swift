@@ -95,20 +95,7 @@ struct S003RelationFlowView: View {
                 .font(.headline)
             Toggle("誕生日を登録する", isOn: $hasBirthday)
             if hasBirthday {
-                HStack {
-                    Picker("月", selection: $birthdayMonth) {
-                        ForEach(1...12, id: \.self) { month in
-                            Text("\(month)月").tag(month)
-                        }
-                    }
-                    Picker("日", selection: $birthdayDay) {
-                        ForEach(1...31, id: \.self) { day in
-                            Text("\(day)日").tag(day)
-                        }
-                    }
-                }
-                .pickerStyle(.wheel)
-                .frame(height: 120)
+                MonthDayPicker(month: $birthdayMonth, day: $birthdayDay)
 
                 Button("不明・スキップ") {
                     hasBirthday = false
@@ -116,17 +103,27 @@ struct S003RelationFlowView: View {
                 .buttonStyle(.bordered)
             }
 
-            TextEditor(text: $cautionNote)
-                .frame(height: 140)
-                .overlay {
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
-                }
-                .onChange(of: cautionNote) { newValue in
-                    if newValue.count > 200 {
-                        cautionNote = String(newValue.prefix(200))
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $cautionNote)
+                    .frame(height: 140)
+                    .onChange(of: cautionNote) { newValue in
+                        if newValue.count > 200 {
+                            cautionNote = String(newValue.prefix(200))
+                        }
                     }
+
+                if cautionNote.isEmpty {
+                    Text("例：来週が記念日、最近仕事が忙しくて余裕がない、返信が遅いと怒りやすい、など")
+                        .foregroundStyle(.secondary)
+                        .font(.callout)
+                        .padding(.top, 8)
+                        .padding(.leading, 4)
                 }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 8)
+                    .stroke(Color.secondary.opacity(0.2), lineWidth: 1)
+            }
 
             HStack {
                 Spacer()
