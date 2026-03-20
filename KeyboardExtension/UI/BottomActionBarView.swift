@@ -6,7 +6,7 @@ struct BottomActionBarView: View {
     var body: some View {
         HStack(spacing: 8) {
             Button(action: { appState.handleBottomTabTap(.moteAI) }) {
-                tabLabel(title: "mote+AI", isActive: appState.currentScreen == .askUser || appState.currentScreen == .loading)
+                tabLabel(title: "mote+AI", isActive: appState.currentScreen == .askUser)
             }
             .disabled(appState.isAIProcessing)
 
