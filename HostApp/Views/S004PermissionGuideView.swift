@@ -36,7 +36,7 @@ struct S004PermissionGuideView: View {
                 }
                 .foregroundStyle(.secondary)
 
-                Button("設定を開く") {
+                Button(HostCopy.S004.openSettings) {
                     openSettings()
                 }
                 .buttonStyle(.bordered)
@@ -55,7 +55,7 @@ struct S004PermissionGuideView: View {
 
                 Toggle("画面収録の開始手順を確認した", isOn: $hasAcknowledgedScreenRecording)
 
-                Button("次へ") {
+                Button(HostCopy.S004.next) {
                     state.navigationPath.append(HostRoute.keyboardComplete)
                 }
                 .buttonStyle(.borderedProminent)
@@ -74,7 +74,7 @@ struct S004PermissionGuideView: View {
             }
             .padding()
         }
-        .navigationTitle("使用準備")
+        .navigationTitle(HostCopy.S004.preparationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
             checkKeyboardPermission(updateErrorState: false)
@@ -136,7 +136,7 @@ struct S004CompleteView: View {
             .buttonStyle(.bordered)
         }
         .padding()
-        .navigationTitle("初期設定完了")
+        .navigationTitle(HostCopy.S004.completeTitle)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -154,7 +154,7 @@ struct S004TutorialView: View {
                 Text("5. mote+AI をタップして開始")
             }
 
-            Button("はじめる") {
+            Button(HostCopy.S004.start) {
                 state.markSetupConfigured()
                 state.resetToHome()
             }
@@ -162,10 +162,10 @@ struct S004TutorialView: View {
             .padding(.horizontal, 16)
             .padding(.bottom, 12)
         }
-        .navigationTitle("使い方")
+        .navigationTitle(HostCopy.S004.tutorialTitle)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("閉じる") {
+                Button(HostCopy.S004.close) {
                     state.markSetupConfigured()
                     state.resetToHome()
                 }

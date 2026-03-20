@@ -116,11 +116,11 @@ struct S002TextHabitFlowView: View {
                 }
             }
 
-            TextField("返信を入力...", text: $inputText, axis: .vertical)
+            TextField(HostCopy.S002.placeholderReplyInput, text: $inputText, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
                 .disabled(isSubmitting)
 
-            Button("送信") {
+            Button(HostCopy.S002.send) {
                 Task {
                     await submitAnswer()
                 }
@@ -131,11 +131,11 @@ struct S002TextHabitFlowView: View {
             Spacer()
         }
         .padding()
-        .navigationTitle("テキストハビットチェック")
+        .navigationTitle(HostCopy.S002.navigationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button("スキップ") {
+                Button(HostCopy.S002.skip) {
                     skipAllAndAnalyze()
                 }
                 .disabled(isSubmitting)
@@ -213,7 +213,7 @@ struct S002TextHabitLoadingView: View {
         VStack(spacing: 12) {
             if isAnalyzing {
                 ProgressView()
-                Text("テキストハビットを解析中...")
+                Text(HostCopy.S002.loadingMessage)
                     .font(.body)
                     .foregroundStyle(.secondary)
             } else if let errorMessage {
@@ -223,15 +223,15 @@ struct S002TextHabitLoadingView: View {
                     .multilineTextAlignment(.center)
 
                 HStack(spacing: 12) {
-                    Button("もう一度試す") {
+                    Button(HostCopy.S002.retry) {
                         Task {
                             await startAnalysis()
                         }
                     }
                     .buttonStyle(.borderedProminent)
 
-                    Button("スキップ") {
-                        state.saveTextHabitSummary("入力なし（後で再登録可能）")
+                    Button(HostCopy.S002.skip) {
+                        state.saveTextHabitSummary(HostCopy.S002.emptySummary)
                         state.resetToHome()
                     }
                     .buttonStyle(.bordered)
@@ -240,7 +240,7 @@ struct S002TextHabitLoadingView: View {
                 EmptyView()
             }
         }
-        .navigationTitle("解析中")
+        .navigationTitle(HostCopy.S002.loadingTitle)
         .task {
             guard !started else { return }
             started = true
@@ -259,7 +259,7 @@ struct S002TextHabitLoadingView: View {
             .filter { !$0.isEmpty }
 
         if nonEmptyAnswers.isEmpty {
-            state.saveTextHabitSummary("入力なし（後で再登録可能）")
+            state.saveTextHabitSummary(HostCopy.S002.emptySummary)
             state.resetToHome()
             return
         }
@@ -272,7 +272,7 @@ struct S002TextHabitLoadingView: View {
             if let localizedError = error as? LocalizedError, let description = localizedError.errorDescription {
                 errorMessage = description
             } else {
-                errorMessage = "解析に失敗しました。時間を置いて再試行してください。"
+                errorMessage = HostCopy.S002.errorFallback
             }
             isAnalyzing = false
         }

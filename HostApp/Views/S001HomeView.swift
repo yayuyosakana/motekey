@@ -5,30 +5,30 @@ struct S001HomeView: View {
 
     var body: some View {
         List {
-            Section("初回セットアップ") {
+            Section(HostCopy.S001.setupSectionTitle) {
                 Button {
                     state.navigationPath.append(HostRoute.textHabit(questionIndex: 0))
                 } label: {
-                    row(title: "テキストハビットチェック", done: state.textStyleRegistered,
-                        detail: state.textStyleSummary.isEmpty ? "未登録" : state.textStyleSummary)
+                    row(title: HostCopy.S001.textHabitTitle, done: state.textStyleRegistered,
+                        detail: state.textStyleSummary.isEmpty ? HostCopy.Common.notRegistered : state.textStyleSummary)
                 }
 
                 Button {
                     state.navigationPath.append(HostRoute.relation(step: .nickname))
                 } label: {
-                    row(title: "リレーションチェック", done: state.relationRegistered,
-                        detail: state.partnerNickname.isEmpty ? "未登録" : state.partnerNickname)
+                    row(title: HostCopy.S001.relationTitle, done: state.relationRegistered,
+                        detail: state.partnerNickname.isEmpty ? HostCopy.Common.notRegistered : state.partnerNickname)
                 }
 
                 Button {
                     state.navigationPath.append(HostRoute.keyboardPermission)
                 } label: {
-                    row(title: "キーボード・画面収録設定", done: state.setupConfigured,
-                        detail: state.setupConfigured ? "設定済み" : "未設定")
+                    row(title: HostCopy.S001.permissionTitle, done: state.setupConfigured,
+                        detail: state.setupConfigured ? HostCopy.Common.configured : HostCopy.Common.notConfigured)
                 }
             }
         }
-        .navigationTitle("モテキー")
+        .navigationTitle(HostCopy.Common.appTitle)
         .onAppear {
             state.loadFromAppGroup()
         }

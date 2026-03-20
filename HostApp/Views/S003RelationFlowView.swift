@@ -137,13 +137,13 @@ struct S003RelationFlowView: View {
             }
             .buttonStyle(.bordered)
 
-            Toggle("入力内容と会話文脈がGemini APIに送信されることに同意する", isOn: $isAgreed)
+            Toggle(HostCopy.S003.agreement, isOn: $isAgreed)
         case .done:
-            Text("登録完了")
+            Text(HostCopy.S003.doneTitle)
                 .font(.title2)
-            Text("いつでも再編集できます")
+            Text(HostCopy.S003.doneMessage)
                 .foregroundStyle(.secondary)
-            Button("ホームに戻る") {
+            Button(HostCopy.S003.backToHome) {
                 state.resetToHome()
             }
             .buttonStyle(.borderedProminent)
@@ -156,7 +156,7 @@ struct S003RelationFlowView: View {
         case .relationship: return "ステップ 2 / 4"
         case .datingDate: return "ステップ 3 / 4"
         case .birthdayAndCaution: return "ステップ 4 / 4"
-        case .done: return "登録完了"
+        case .done: return HostCopy.S003.doneTitle
         }
     }
 
