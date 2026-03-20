@@ -9,7 +9,8 @@ struct KeyboardRuntimeFactory {
     @MainActor
     static func makeAppState(
         clearMarkedText: @escaping () -> Void = {},
-        insertText: @escaping (String) -> Void
+        insertText: @escaping (String) -> Void,
+        hasFullAccess: (() -> Bool)? = nil
     ) -> AppState? {
         guard let appGroupURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: appGroupSuiteName)
@@ -20,7 +21,10 @@ struct KeyboardRuntimeFactory {
         let frameURL = appGroupURL.appendingPathComponent(latestFrameFileName)
         let frameLoader = FileLatestFrameLoader(frameURL: frameURL)
         let profileStore = AppGroupProfileStore(suiteName: appGroupSuiteName)
-        let permissionChecker = AppGroupPermissionChecker(suiteName: appGroupSuiteName)
+        let permissionChecker = AppGroupPermissionChecker(
+            suiteName: appGroupSuiteName,
+            fullAccessProvider: hasFullAccess
+        )
         let composeProxy = TextDocumentComposeProxy(
             clearMarkedTextHandler: clearMarkedText,
             insertHandler: insertText

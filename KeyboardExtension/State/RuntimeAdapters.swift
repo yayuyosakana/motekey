@@ -129,13 +129,19 @@ struct StaticPermissionChecker: PermissionChecking {
 
 struct AppGroupPermissionChecker: PermissionChecking {
     private let defaults: UserDefaults
+    private let fullAccessProvider: (() -> Bool)?
 
-    init(suiteName: String) {
+    init(
+        suiteName: String,
+        fullAccessProvider: (() -> Bool)? = nil
+    ) {
         self.defaults = UserDefaults(suiteName: suiteName) ?? .standard
+        self.fullAccessProvider = fullAccessProvider
     }
 
     func currentPermissionIssue() -> PermissionIssue {
-        let hasFullAccess = defaults.object(forKey: AppGroupKeys.permissionFullAccessGranted) as? Bool ?? true
+        let hasFullAccess = fullAccessProvider?()
+            ?? (defaults.object(forKey: AppGroupKeys.permissionFullAccessGranted) as? Bool ?? true)
         let hasScreenRecording = defaults.object(forKey: AppGroupKeys.permissionScreenRecordingGranted) as? Bool ?? true
 
         if !hasFullAccess {

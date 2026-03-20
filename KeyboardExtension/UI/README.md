@@ -22,7 +22,10 @@ S-005〜S-007 の keyboard runtime フロー向け SwiftUI 骨組みです。
 - `PermissionBlockLayerView`
   - フルアクセス/画面収録の未許可時に案内表示
 - `KeyboardRuntimeInstaller`
-  - `UIInputViewController` から `AppState` を生成し、runtime UI をフルスクリーン埋め込みする実配線ヘルパー
+  - `KeyboardRuntimeHostContext` / `UIInputViewController` から `AppState` を生成し、runtime UI をフルスクリーン埋め込みする実配線ヘルパー
+  - `hasFullAccess` をホスト実体から直接参照して権限判定へ反映
+- `KeyboardRuntimeHostContext`
+  - host側（`KeyboardViewController` など）が準拠する軽量プロトコル（insert/clear/nextInputMode/fullAccess）
 
 `KeyboardViewController` 側では `KeyboardRuntimeInstaller.makeAppState(...)` と
 `KeyboardRuntimeInstaller.embed(...)` を呼ぶことで、runtime UIを既存キーボード上に重ねて接続できる。

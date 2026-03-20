@@ -5,6 +5,22 @@ import SwiftUI
 @MainActor
 enum KeyboardRuntimeInstaller {
     static func makeAppState(
+        context: any KeyboardRuntimeHostContext
+    ) -> AppState? {
+        KeyboardRuntimeFactory.makeAppState(
+            clearMarkedText: {
+                context.clearMarkedText()
+            },
+            insertText: { text in
+                context.insertText(text)
+            },
+            hasFullAccess: {
+                context.hasFullAccess
+            }
+        )
+    }
+
+    static func makeAppState(
         in inputViewController: UIInputViewController,
         clearMarkedText: @escaping () -> Void = {}
     ) -> AppState? {
@@ -12,6 +28,9 @@ enum KeyboardRuntimeInstaller {
             clearMarkedText: clearMarkedText,
             insertText: { text in
                 inputViewController.textDocumentProxy.insertText(text)
+            },
+            hasFullAccess: {
+                inputViewController.hasFullAccess
             }
         )
     }
