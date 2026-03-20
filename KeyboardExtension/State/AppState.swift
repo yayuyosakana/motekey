@@ -180,8 +180,25 @@ final class AppState: ObservableObject {
             return
         }
 
-        fallbackReason = .apiError
+        fallbackReason = classifyFallbackReason(error)
         transition(to: .fallback)
+    }
+
+    private func classifyFallbackReason(_ error: Error) -> FallbackReason {
+        if let urlError = error as? URLError, urlError.code == .timedOut {
+            return .apiTimeout
+        }
+        if let geminiError = error as? GeminiServiceError {
+            switch geminiError {
+            case .chatNotDetected:
+                return .imageCaptureFailed
+            case .invalidHTTPStatus(let code) where code == 408 || code == 504:
+                return .apiTimeout
+            default:
+                return .apiError
+            }
+        }
+        return .apiError
     }
 
     private func runAskUserFlow(flowID: UUID) async {

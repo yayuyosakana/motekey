@@ -45,6 +45,11 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
 
         let jsonText = try extractJSONObject(from: text)
         let payload = try decoder.decode(AskUserQuestionsResponse.self, from: Data(jsonText.utf8))
+        guard payload.questions.count == 3,
+              payload.questions.allSatisfy({ $0.options.count == 3 })
+        else {
+            throw RuntimeError.invalidQuestionResponse
+        }
 
         return payload.questions.enumerated().map { index, question in
             AskUserQuestion(
@@ -82,7 +87,13 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
 
         let jsonText = try extractJSONObject(from: text)
         let payload = try decoder.decode(ReplyCandidatesResponse.self, from: Data(jsonText.utf8))
-        return payload.chips.map { ReplyCandidate(text: $0.text) }
+        let candidates = payload.chips
+            .map { ReplyCandidate(text: $0.text.trimmingCharacters(in: .whitespacesAndNewlines)) }
+            .filter { !$0.text.isEmpty }
+        guard (2...5).contains(candidates.count) else {
+            throw RuntimeError.invalidReplyResponse
+        }
+        return candidates
     }
 
     private func extractJSONObject(from text: String) throws -> String {
@@ -119,7 +130,7 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
             contents: [.init(parts: parts)],
             generationConfig: .init(responseMimeType: "application/json", temperature: 0.2)
         )
-        request.httpBody = try JSONEncoder().encode(body)
+        request.httpBody = try encoder.encode(body)
 
         let (data, response) = try await session.data(for: request)
 

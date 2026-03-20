@@ -8,6 +8,18 @@ struct FileLatestFrameLoader: LatestFrameLoading {
     }
 }
 
+struct InMemoryFrameLoader: LatestFrameLoading {
+    let frameData: Data
+
+    init(frameData: Data = Data([0xFF, 0xD8, 0xFF, 0xD9])) {
+        self.frameData = frameData
+    }
+
+    func loadLatestFrameData() throws -> Data {
+        frameData
+    }
+}
+
 struct InMemoryProfileStore: ProfileStore {
     let textStyleProfile: TextStyleProfile
     let relationProfile: RelationProfile

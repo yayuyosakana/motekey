@@ -15,6 +15,7 @@
   - Gemini/Frame/Profile/Compose の依存プロトコル
 - `KeyboardRuntimeFactory.swift`
   - App Group と Gemini service を束ねて `AppState` を生成する入口
+  - `makeMockAppState` で UI確認用モック状態を生成
 
 ## 仕様との対応
 

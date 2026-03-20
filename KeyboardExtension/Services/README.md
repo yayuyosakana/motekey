@@ -21,3 +21,5 @@ Gemini API 呼び出し層です。`AppState` が必要とする以下3用途を
   - 各用途のプロンプト組み立て
 - `GeminiJSONExtractor.swift`
   - 返却テキストから最初のJSONオブジェクトを抽出
+- `MockKeyboardRuntimeServices.swift`
+  - UI確認用のモック Vision/Q生成/返信生成

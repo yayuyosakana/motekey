@@ -29,4 +29,21 @@ struct KeyboardRuntimeFactory {
             composeProxy: composeProxy
         )
     }
+
+    @MainActor
+    static func makeMockAppState(insertText: @escaping (String) -> Void = { _ in }) -> AppState {
+        let frameLoader = InMemoryFrameLoader()
+        let profileStore = InMemoryProfileStore(
+            textStyleProfile: .init(tone: "friendly", endingStyle: "casual", emojiStyle: "light"),
+            relationProfile: .init(partnerName: "パートナー", relationshipSummary: "彼女", cautionNotes: "")
+        )
+        return AppState(
+            frameLoader: frameLoader,
+            visionExtractor: MockVisionExtractor(),
+            questionGenerator: MockQuestionGenerator(),
+            replyGenerator: MockReplyGenerator(),
+            profileStore: profileStore,
+            composeProxy: TextDocumentComposeProxy(insertHandler: insertText)
+        )
+    }
 }
