@@ -92,7 +92,7 @@ struct S003RelationFlowView: View {
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $cautionNote)
                     .frame(height: 140)
-                    .onChange(of: cautionNote) { newValue in
+                    .onChange(of: cautionNote) { _, newValue in
                         if newValue.count > 200 {
                             cautionNote = String(newValue.prefix(200))
                         }
@@ -125,6 +125,7 @@ struct S003RelationFlowView: View {
 
             Toggle(HostCopy.S003.agreement, isOn: $isAgreed)
         case .done:
+            CheckmarkAnimationView()
             Text(HostCopy.S003.doneTitle)
                 .font(.title2)
             Text(HostCopy.S003.doneMessage)

@@ -49,10 +49,10 @@ struct S002TextHabitFlowView: View {
                     .onAppear {
                         scrollToBottom(proxy: proxy, animated: false)
                     }
-                    .onChange(of: submittedReply) { _ in
+                    .onChange(of: submittedReply) { _, _ in
                         scrollToBottom(proxy: proxy, animated: true)
                     }
-                    .onChange(of: questionIndex) { _ in
+                    .onChange(of: questionIndex) { _, _ in
                         scrollToBottom(proxy: proxy, animated: false)
                     }
                 }
@@ -201,14 +201,14 @@ struct S002TextHabitLoadingView: View {
             .filter { !$0.isEmpty }
 
         if nonEmptyAnswers.isEmpty {
-            state.saveTextHabitSummary(HostCopy.S002.emptySummary)
+            state.saveTextHabitProfile(.fallback(summary: HostCopy.S002.emptySummary))
             state.resetToHome()
             return
         }
 
         do {
-            let summary = try await GeminiTextHabitAnalyzer().analyze(samples: nonEmptyAnswers)
-            state.saveTextHabitSummary(summary)
+            let profile = try await GeminiTextHabitAnalyzer().analyze(samples: nonEmptyAnswers)
+            state.saveTextHabitProfile(profile)
             state.resetToHome()
         } catch {
             if let localizedError = error as? LocalizedError, let description = localizedError.errorDescription {

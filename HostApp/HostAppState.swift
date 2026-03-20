@@ -57,10 +57,13 @@ final class HostAppState: ObservableObject {
     }
 
     func saveTextHabitSummary(_ summary: String) {
-        let profile = TextStyleProfile(summary: summary, updatedAt: Date())
+        saveTextHabitProfile(.fallback(summary: summary, updatedAt: Date()))
+    }
+
+    func saveTextHabitProfile(_ profile: TextStyleProfile) {
         store.saveTextStyle(profile)
         textStyleRegistered = true
-        textStyleSummary = summary
+        textStyleSummary = profile.summary
     }
 
     func saveRelationProfile() {
@@ -106,6 +109,20 @@ final class HostAppState: ObservableObject {
         store.saveSetupConfigured(true)
     }
 
+    func updatePermissionFlags(
+        fullAccessGranted: Bool? = nil,
+        screenRecordingAcknowledged: Bool? = nil
+    ) {
+        store.savePermissionFlags(
+            fullAccessGranted: fullAccessGranted,
+            screenRecordingGranted: screenRecordingAcknowledged
+        )
+    }
+
+    func savedScreenRecordingAcknowledgement() -> Bool {
+        store.loadPermissionFlags().screenRecordingGranted ?? false
+    }
+
     func completeSetupAndReturnHome() {
         markSetupConfigured()
         resetToHome()
@@ -115,6 +132,7 @@ final class HostAppState: ObservableObject {
     func isMotekeyEnabled(activeInputModes: [UITextInputMode]) -> Bool {
         activeInputModes.contains { inputMode in
             let primaryLanguage = (inputMode.primaryLanguage ?? "").lowercased()
+            guard !primaryLanguage.isEmpty else { return false }
             return HostCopy.S004.keyboardIdentifierHints.contains { hint in
                 primaryLanguage.contains(hint.lowercased())
             }

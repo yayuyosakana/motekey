@@ -125,10 +125,12 @@ enum HostCopy {
         static let keyboardStep2 = "2) 一般 > キーボード > キーボード"
         static let keyboardStep3 = "3) 新しいキーボードを追加 > モテキー"
         static let keyboardStep4 = "4) モテキー > フルアクセスを許可 をオン"
+        static let keyboardStep5 = "5) 確認ダイアログで「許可」をタップ"
         static let recordingStep1 = "1) コントロールセンターを開く"
         static let recordingStep2 = "2) 画面収録を長押し"
         static let recordingStep3 = "3) モテキーを選択して開始"
-        static let recordingStep4 = "4) LINEに戻る"
+        static let recordingStep4 = "4) ブロードキャストを開始 をタップ"
+        static let recordingStep5 = "5) LINEに戻る"
         static let recordingAcknowledgement = "画面収録の開始手順を確認した"
         static let permissionError = "キーボードの追加またはフルアクセス許可が完了していないようです。"
         static let reopenSettings = "もう一度設定を開く"
@@ -142,6 +144,7 @@ enum HostCopy {
         static let tutorialStep4 = "4. モテキーを選択"
         static let tutorialStep5 = "5. mote+AI をタップして開始"
         static let keyboardIdentifierHints = [
+            "motekeyapp",
             "motekey",
             "com.motekey.app.keyboard",
             "com.motekey.app"

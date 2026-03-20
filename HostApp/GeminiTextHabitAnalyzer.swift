@@ -59,11 +59,11 @@ struct GeminiTextHabitAnalyzer {
         let summary: String
     }
 
-    func analyze(samples: [String]) async throws -> String {
+    func analyze(samples: [String]) async throws -> TextStyleProfile {
         try await analyze(samples: samples, hasRetried: false)
     }
 
-    private func analyze(samples: [String], hasRetried: Bool) async throws -> String {
+    private func analyze(samples: [String], hasRetried: Bool) async throws -> TextStyleProfile {
         let key = APIConfig.geminiAPIKey(for: .textHabitAnalysis)
         guard !key.isEmpty else {
             throw AnalysisError.missingAPIKey
@@ -117,10 +117,42 @@ struct GeminiTextHabitAnalyzer {
             throw AnalysisError.invalidResponse
         }
 
-        if let structured = try? JSONDecoder().decode(StructuredSummary.self, from: Data(text.utf8)) {
+        if let jsonString = extractJSONObjectString(from: text),
+           let jsonData = jsonString.data(using: .utf8),
+           let profile = try? JSONDecoder().decode(TextStyleProfile.self, from: jsonData) {
+            return profile
+        }
+
+        if let summary = parseSummaryFallback(from: text) {
+            return .fallback(summary: summary)
+        }
+
+        throw AnalysisError.invalidResponse
+    }
+
+    private func extractJSONObjectString(from text: String) -> String? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let start = trimmed.firstIndex(of: "{"),
+              let end = trimmed.lastIndex(of: "}"),
+              start <= end else {
+            return nil
+        }
+        return String(trimmed[start...end])
+    }
+
+    private func parseSummaryFallback(from text: String) -> String? {
+        if let jsonString = extractJSONObjectString(from: text),
+           let jsonData = jsonString.data(using: .utf8),
+           let structured = try? JSONDecoder().decode(StructuredSummary.self, from: jsonData),
+           !structured.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             return structured.summary
         }
-        return text
+
+        let plain = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if plain.isEmpty {
+            return nil
+        }
+        return plain
     }
 
     private func buildPrompt(samples: [String]) -> String {
@@ -129,11 +161,33 @@ struct GeminiTextHabitAnalyzer {
             .joined(separator: "\n")
 
         return """
-        次の返信サンプルから、語尾・口調・文の長さ・絵文字傾向を簡潔に要約してください。
-        出力は日本語1文、最大80文字。
+        あなたはユーザーの文章の口調を分析するAIです。
 
-        返信サンプル:
+        以下はユーザーが実際にパートナーへ送ったメッセージのサンプルです。
+
+        【サンプルデータ】
         \(sampleLines)
+
+        ---
+
+        上記のサンプルをもとに、次の6観点（語尾のクセ、絵文字・記号、共感表現、提案の言い方、文の長さ、口語表現）を分析し、
+        JSONのみで出力してください。前置き、説明文、コードブロックは不要です。
+
+        出力形式:
+        {
+          "tone_profile": {
+            "summary": "口調を一言で表現した文",
+            "rules": ["ルール1", "ルール2"],
+            "details": {
+              "ending_patterns": "...",
+              "emoji_usage": "...",
+              "empathy_style": "...",
+              "suggestion_style": "...",
+              "message_length": "...",
+              "colloquial_style": "..."
+            }
+          }
+        }
         """
     }
 }

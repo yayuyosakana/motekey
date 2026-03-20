@@ -10,6 +10,7 @@ struct S004PermissionGuideView: View {
     @State private var hasAcknowledgedScreenRecording = false
     @State private var showError = false
     @State private var hasReturnedFromSettings = false
+    @State private var didOpenSystemSettings = false
 
     var body: some View {
         ScrollView {
@@ -27,6 +28,7 @@ struct S004PermissionGuideView: View {
                     Text(HostCopy.S004.keyboardStep2)
                     Text(HostCopy.S004.keyboardStep3)
                     Text(HostCopy.S004.keyboardStep4)
+                    Text(HostCopy.S004.keyboardStep5)
                 }
                 .foregroundStyle(.secondary)
 
@@ -44,12 +46,17 @@ struct S004PermissionGuideView: View {
                     Text(HostCopy.S004.recordingStep2)
                     Text(HostCopy.S004.recordingStep3)
                     Text(HostCopy.S004.recordingStep4)
+                    Text(HostCopy.S004.recordingStep5)
                 }
                 .foregroundStyle(.secondary)
 
                 Toggle(HostCopy.S004.recordingAcknowledgement, isOn: $hasAcknowledgedScreenRecording)
 
                 Button(HostCopy.S004.next) {
+                    state.updatePermissionFlags(
+                        fullAccessGranted: hasMotekeyEnabled,
+                        screenRecordingAcknowledged: hasAcknowledgedScreenRecording
+                    )
                     state.navigationPath.append(HostRoute.keyboardComplete)
                 }
                 .buttonStyle(.borderedProminent)
@@ -71,12 +78,18 @@ struct S004PermissionGuideView: View {
         .navigationTitle(HostCopy.S004.preparationTitle)
         .navigationBarTitleDisplayMode(.inline)
         .onAppear {
+            hasAcknowledgedScreenRecording = state.savedScreenRecordingAcknowledgement()
             checkKeyboardPermission(updateErrorState: false)
+        }
+        .onChange(of: hasAcknowledgedScreenRecording) { _, value in
+            state.updatePermissionFlags(screenRecordingAcknowledged: value)
         }
 #if canImport(UIKit)
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
-            hasReturnedFromSettings = true
-            checkKeyboardPermission(updateErrorState: true)
+            let shouldUpdateError = didOpenSystemSettings
+            hasReturnedFromSettings = hasReturnedFromSettings || shouldUpdateError
+            checkKeyboardPermission(updateErrorState: shouldUpdateError)
+            didOpenSystemSettings = false
         }
 #endif
     }
@@ -84,6 +97,7 @@ struct S004PermissionGuideView: View {
     private func checkKeyboardPermission(updateErrorState: Bool) {
 #if canImport(UIKit)
         hasMotekeyEnabled = state.isMotekeyEnabled(activeInputModes: UITextInputMode.activeInputModes)
+        state.updatePermissionFlags(fullAccessGranted: hasMotekeyEnabled)
         showError = state.shouldShowKeyboardPermissionError(
             updateErrorState: updateErrorState,
             hasReturnedFromSettings: hasReturnedFromSettings,
@@ -91,12 +105,14 @@ struct S004PermissionGuideView: View {
         )
 #else
         hasMotekeyEnabled = false
+        state.updatePermissionFlags(fullAccessGranted: false)
         showError = updateErrorState
 #endif
     }
 
     private func openSettings() {
 #if canImport(UIKit)
+        didOpenSystemSettings = true
         guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(settingsURL)
 #endif
@@ -108,9 +124,7 @@ struct S004CompleteView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 56))
-                .foregroundStyle(.green)
+            CheckmarkAnimationView()
             Text(HostCopy.S004.completeHeadline)
                 .font(.title3)
             Text(HostCopy.S004.completeSubheadline)
