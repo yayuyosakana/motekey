@@ -106,7 +106,7 @@ enum HostCopy {
         static let doneTitle = "登録完了"
         static let doneMessage = "いつでも再編集できます"
         static let backToHome = "ホームに戻る"
-        static let agreement = "入力内容と会話文脈がGemini APIに送信されることに同意する"
+        static let agreement = "入力した内容およびLINEの会話文脈はAI（Gemini API）に送信されます。相手がこのことを知っていない場合、送信前に共有することを推奨します。"
     }
 
     enum S004 {
