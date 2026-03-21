@@ -1,14 +1,20 @@
 # セットアップガイド
 
-## Phase3 Bootstrap の最小確認
+## Phase6 Bootstrap の最小確認
 
 このリポジトリ単体では、まず Swift Package のコアモジュールをビルド確認する。
 
 ```bash
-swift test
+make bootstrap-check
 ```
 
 > このチェックは `HostApp/*` の画面実装や `KeyboardExtension/*` のUI実装を含まない「基盤モジュール」の健全性確認。
+
+同じ内容を手動で直接実行する場合:
+
+```bash
+./scripts/bootstrap_check.sh
+```
 
 ## 前提
 
