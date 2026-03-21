@@ -32,7 +32,7 @@ struct PermissionBlockLayerView: View {
         case .fullAccessDenied:
             return "フルアクセスが未許可です。iOS設定で許可後に再実行してください。"
         case .screenRecordingDenied:
-            return "画面収録が未開始です。Broadcast Extensionを開始してから再実行してください。"
+            return "画面収録が未開始です。ホストアプリの使用準備で画面収録を開始してから再実行してください。"
         }
     }
 }

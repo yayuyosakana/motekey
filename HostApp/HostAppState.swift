@@ -140,6 +140,10 @@ final class HostAppState: ObservableObject {
         store.loadPermissionFlags().screenRecordingGranted ?? false
     }
 
+    func isScreenRecordingActive() -> Bool {
+        store.hasRecentCapturedFrame()
+    }
+
     func completeSetupAndReturnHome() {
         markSetupConfigured()
         resetToHome()

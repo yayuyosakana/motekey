@@ -45,6 +45,28 @@ struct FileLatestFrameLoader: LatestFrameLoading {
 
         return try Data(contentsOf: frameURL)
     }
+
+    func hasRecentFrame(maxAge: TimeInterval) -> Bool {
+        guard maxAge > 0 else { return false }
+
+        if let attributes = try? FileManager.default.attributesOfItem(atPath: frameURL.path),
+           let modifiedAt = attributes[.modificationDate] as? Date,
+           Date().timeIntervalSince(modifiedAt) <= maxAge {
+            return true
+        }
+
+#if canImport(UIKit)
+        if let pasteboardName,
+           let pasteboardType,
+           let pasteboard = UIPasteboard(name: .init(pasteboardName), create: false),
+           let pasteboardData = pasteboard.data(forPasteboardType: pasteboardType),
+           !pasteboardData.isEmpty {
+            return true
+        }
+#endif
+
+        return false
+    }
 }
 
 struct InMemoryFrameLoader: LatestFrameLoading {
@@ -56,6 +78,10 @@ struct InMemoryFrameLoader: LatestFrameLoading {
 
     func loadLatestFrameData() throws -> Data {
         frameData
+    }
+
+    func hasRecentFrame(maxAge: TimeInterval) -> Bool {
+        !frameData.isEmpty
     }
 }
 
@@ -171,14 +197,12 @@ struct AppGroupPermissionChecker: PermissionChecking {
     func currentPermissionIssue() -> PermissionIssue {
         let hasFullAccess = fullAccessProvider?()
             ?? (defaults.object(forKey: AppGroupKeys.permissionFullAccessGranted) as? Bool ?? true)
-        let hasScreenRecording = defaults.object(forKey: AppGroupKeys.permissionScreenRecordingGranted) as? Bool ?? true
 
         if !hasFullAccess {
             return .fullAccessDenied
         }
-        if !hasScreenRecording {
-            return .screenRecordingDenied
-        }
+        // 画面収録は mote+AI 押下で開始トリガーをかけるため、
+        // 事前フラグだけでブロックせず実フレーム取得結果で扱う。
         return .none
     }
 }

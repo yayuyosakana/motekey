@@ -41,7 +41,7 @@ struct FallbackLayerView: View {
         case .none:
             return "エラー内容は不明です。"
         case .imageCaptureFailed:
-            return "画面キャプチャを取得できませんでした。コントロールセンターの画面収録で「モテキー」を開始してから再試行してください。"
+            return "画面キャプチャを取得できませんでした。ホストアプリの使用準備で画面収録を開始してから再試行してください。"
         case .apiTimeout:
             return "APIがタイムアウトしました。"
         case .apiError:

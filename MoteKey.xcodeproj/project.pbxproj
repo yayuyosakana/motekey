@@ -16,6 +16,7 @@
 		2C8D00C101C7C971823827F0 /* KeyboardRuntimeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A07EEED8DBDEF81C1790F3CE /* KeyboardRuntimeFactory.swift */; };
 		359336A3D22E86F9057C2F20 /* MoteKeyShared in Frameworks */ = {isa = PBXBuildFile; productRef = 2D40218C9B63C63AC6013974 /* MoteKeyShared */; };
 		3E9730292141E8F4666D8446 /* AskUserLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA60E0711435F9E5A9EE3678 /* AskUserLayerView.swift */; };
+		404CD1971D4F4AC34E02D0EE /* ScreenCaptureStarter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3628AA8A121A407A4BCC2538 /* ScreenCaptureStarter.swift */; };
 		52FE37386B528BC44C86BE23 /* GeminiPromptFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001DE8F8F2EE27E447BF42FC /* GeminiPromptFactory.swift */; };
 		574746A1651C0E87835CE848 /* S004PermissionGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1232E27569BFD411266C82A4 /* S004PermissionGuideView.swift */; };
 		5FABC3DE462222197EDAECCB /* MoteKeyShared in Frameworks */ = {isa = PBXBuildFile; productRef = 6B188CDC61214F635700A834 /* MoteKeyShared */; };
@@ -99,6 +100,7 @@
 		1D8A5CE66D1CB0EE7D39CD77 /* MoteKeyHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoteKeyHostApp.swift; sourceTree = "<group>"; };
 		2C852608CF0EDE5E563879E9 /* StageLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageLayerView.swift; sourceTree = "<group>"; };
 		2F548042145782B37DE53787 /* HostAppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostAppState.swift; sourceTree = "<group>"; };
+		3628AA8A121A407A4BCC2538 /* ScreenCaptureStarter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCaptureStarter.swift; sourceTree = "<group>"; };
 		376F2C59EC59D26E4157FF75 /* PermissionBlockLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionBlockLayerView.swift; sourceTree = "<group>"; };
 		4B748C8218BD52FAFEE59AC1 /* MoteKeyBroadcastExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MoteKeyBroadcastExtension.entitlements; sourceTree = "<group>"; };
 		4D7F1D3BC26E85DC4F5A2F2F /* KeyboardRuntimeInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeInstaller.swift; sourceTree = "<group>"; };
@@ -228,6 +230,7 @@
 				566E7BE39277241E4BE5462A /* KeyboardRuntimeRootView.swift */,
 				7DD730737AC471A03359C87B /* LoadingVeilView.swift */,
 				376F2C59EC59D26E4157FF75 /* PermissionBlockLayerView.swift */,
+				3628AA8A121A407A4BCC2538 /* ScreenCaptureStarter.swift */,
 				2C852608CF0EDE5E563879E9 /* StageLayerView.swift */,
 			);
 			path = UI;
@@ -451,6 +454,7 @@
 				75A06C367C1378B64A228CFC /* MockKeyboardRuntimeServices.swift in Sources */,
 				A79F10D715D2A0F0D787F7F5 /* PermissionBlockLayerView.swift in Sources */,
 				88E47A3CBC8A457D1CCB9C7D /* RuntimeAdapters.swift in Sources */,
+				404CD1971D4F4AC34E02D0EE /* ScreenCaptureStarter.swift in Sources */,
 				7E95893C5250D1BF779D95B7 /* StageLayerView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

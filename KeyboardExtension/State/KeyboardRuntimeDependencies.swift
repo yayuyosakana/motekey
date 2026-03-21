@@ -2,6 +2,7 @@ import Foundation
 
 protocol LatestFrameLoading {
     func loadLatestFrameData() throws -> Data
+    func hasRecentFrame(maxAge: TimeInterval) -> Bool
 }
 
 protocol VisionContextExtracting {
@@ -36,6 +37,7 @@ protocol PermissionChecking {
 }
 
 enum RuntimeError: Error {
+    case latestFrameUnavailable
     case invalidQuestionResponse
     case invalidReplyResponse
 }

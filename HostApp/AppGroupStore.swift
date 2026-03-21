@@ -272,6 +272,23 @@ struct AppGroupStore {
         return (fullAccessGranted, screenRecordingGranted)
     }
 
+    func hasRecentCapturedFrame(maxAge: TimeInterval = 3.0) -> Bool {
+        guard maxAge > 0 else { return false }
+        guard let appGroupURL = FileManager.default.containerURL(
+            forSecurityApplicationGroupIdentifier: AppGroupKeys.suiteName
+        ) else {
+            return false
+        }
+
+        let frameURL = appGroupURL.appendingPathComponent(AppGroupKeys.latestFrameFileName)
+        guard let attributes = try? FileManager.default.attributesOfItem(atPath: frameURL.path),
+              let modifiedAt = attributes[.modificationDate] as? Date else {
+            return false
+        }
+
+        return Date().timeIntervalSince(modifiedAt) <= maxAge
+    }
+
     private func makeSharedTextStyleProfile(from profile: TextStyleProfile) -> MoteKeyShared.TextStyleProfile {
         .init(
             tone_profile: .init(

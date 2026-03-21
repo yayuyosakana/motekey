@@ -30,7 +30,13 @@ final class AppState: ObservableObject {
     private let replyGenerator: ReplyGenerating
     private let profileStore: ProfileStore
     private let permissionChecker: PermissionChecking
+    private let requestScreenCaptureStart: (() -> Void)?
+    private let frameAcquireTimeout: TimeInterval
+    private let framePollInterval: TimeInterval
+    private let frameFreshnessWindow: TimeInterval
+    private let captureStartCooldown: TimeInterval
     private let composeProxy: ComposeTextProxy?
+    private var lastCaptureStartRequestAt = Date.distantPast
     private var flowID = UUID()
     private var isUsingManualContextFallback = false
 
@@ -41,6 +47,11 @@ final class AppState: ObservableObject {
         replyGenerator: ReplyGenerating,
         profileStore: ProfileStore,
         permissionChecker: PermissionChecking,
+        requestScreenCaptureStart: (() -> Void)? = nil,
+        frameAcquireTimeout: TimeInterval = 8.0,
+        framePollInterval: TimeInterval = 0.2,
+        frameFreshnessWindow: TimeInterval = 2.5,
+        captureStartCooldown: TimeInterval = 10.0,
         composeProxy: ComposeTextProxy?
     ) {
         self.frameLoader = frameLoader
@@ -49,6 +60,11 @@ final class AppState: ObservableObject {
         self.replyGenerator = replyGenerator
         self.profileStore = profileStore
         self.permissionChecker = permissionChecker
+        self.requestScreenCaptureStart = requestScreenCaptureStart
+        self.frameAcquireTimeout = frameAcquireTimeout
+        self.framePollInterval = framePollInterval
+        self.frameFreshnessWindow = frameFreshnessWindow
+        self.captureStartCooldown = captureStartCooldown
         self.composeProxy = composeProxy
     }
 
@@ -203,6 +219,11 @@ final class AppState: ObservableObject {
 
     private func startAskUserFlow() {
         guard !isAIProcessing else { return }
+
+        // iOSの制約上、画面収録の最終開始確認はユーザー操作が必要。
+        // ただし既に収録中なら再要求せず、未稼働時のみ開始UIを出す。
+        requestScreenCaptureStartIfNeeded()
+
         let issue = permissionChecker.currentPermissionIssue()
         guard issue == .none else {
             permissionIssue = issue
@@ -285,7 +306,7 @@ final class AppState: ObservableObject {
         do {
             let frameData: Data
             do {
-                frameData = try frameLoader.loadLatestFrameData()
+                frameData = try await waitForLatestFrameData()
             } catch {
                 guard self.flowID == flowID else { return }
                 isAIProcessing = false
@@ -315,6 +336,35 @@ final class AppState: ObservableObject {
         } catch {
             handleFlowError(error, flowID: flowID)
         }
+    }
+
+    private func waitForLatestFrameData() async throws -> Data {
+        let timeoutAt = Date().addingTimeInterval(frameAcquireTimeout)
+        while true {
+            if let frameData = try? frameLoader.loadLatestFrameData(), !frameData.isEmpty {
+                return frameData
+            }
+
+            if Task.isCancelled {
+                throw CancellationError()
+            }
+            if Date() >= timeoutAt {
+                throw RuntimeError.latestFrameUnavailable
+            }
+
+            let nanos = UInt64(max(framePollInterval, 0.02) * 1_000_000_000)
+            try await Task.sleep(nanoseconds: nanos)
+        }
+    }
+
+    private func requestScreenCaptureStartIfNeeded() {
+        guard requestScreenCaptureStart != nil else { return }
+        guard !frameLoader.hasRecentFrame(maxAge: frameFreshnessWindow) else { return }
+
+        let now = Date()
+        guard now.timeIntervalSince(lastCaptureStartRequestAt) >= captureStartCooldown else { return }
+        lastCaptureStartRequestAt = now
+        requestScreenCaptureStart?()
     }
 
     private func runReplyGeneration(flowID: UUID) async {

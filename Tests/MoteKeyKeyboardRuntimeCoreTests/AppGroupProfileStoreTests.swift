@@ -73,6 +73,6 @@ final class AppGroupProfileStoreTests: XCTestCase {
 
         defaults.set(true, forKey: AppGroupKeys.permissionFullAccessGranted)
         defaults.set(false, forKey: AppGroupKeys.permissionScreenRecordingGranted)
-        XCTAssertEqual(checker.currentPermissionIssue(), .screenRecordingDenied)
+        XCTAssertEqual(checker.currentPermissionIssue(), .none)
     }
 }

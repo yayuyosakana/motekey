@@ -49,6 +49,38 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertEqual(recorder.insertedTexts, ["only-retained-by-app-state"])
     }
 
+    func testMoteAITapRequestsScreenCaptureStart() {
+        let recorder = ScreenCaptureRequestRecorder()
+        let appState = makeAppState(
+            frameLoader: MissingFrameLoader(),
+            visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
+            questionGenerator: ImmediateQuestionGenerator(),
+            requestScreenCaptureStart: {
+                recorder.requestCount += 1
+            }
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+
+        XCTAssertEqual(recorder.requestCount, 1)
+    }
+
+    func testMoteAITapDoesNotRequestScreenCaptureStartWhenRecentFrameExists() {
+        let recorder = ScreenCaptureRequestRecorder()
+        let appState = makeAppState(
+            frameLoader: StaticFrameLoader(),
+            visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
+            questionGenerator: ImmediateQuestionGenerator(),
+            requestScreenCaptureStart: {
+                recorder.requestCount += 1
+            }
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+
+        XCTAssertEqual(recorder.requestCount, 0)
+    }
+
     func testKeyboardTabCancelsAskUserAndClearsTemporaryState() async {
         let appState = makeAppState(
             visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
@@ -290,6 +322,9 @@ final class AppStateFlowTests: XCTestCase {
         visionExtractor: VisionContextExtracting = ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
         questionGenerator: AskUserQuestionGenerating = ImmediateQuestionGenerator(),
         replyGenerator: ReplyGenerating = ImmediateReplyGenerator(),
+        requestScreenCaptureStart: (() -> Void)? = nil,
+        frameAcquireTimeout: TimeInterval = 0.05,
+        framePollInterval: TimeInterval = 0.01,
         composeProxy: ComposeTextProxy? = nil
     ) -> AppState {
         AppState(
@@ -299,6 +334,9 @@ final class AppStateFlowTests: XCTestCase {
             replyGenerator: replyGenerator,
             profileStore: StaticProfileStore(),
             permissionChecker: StaticPermissionChecker(issue: .none),
+            requestScreenCaptureStart: requestScreenCaptureStart,
+            frameAcquireTimeout: frameAcquireTimeout,
+            framePollInterval: framePollInterval,
             composeProxy: composeProxy
         )
     }
@@ -324,11 +362,19 @@ private struct StaticFrameLoader: LatestFrameLoading {
     func loadLatestFrameData() throws -> Data {
         Data([0xFF, 0xD8, 0xFF, 0xD9])
     }
+
+    func hasRecentFrame(maxAge: TimeInterval) -> Bool {
+        true
+    }
 }
 
 private struct MissingFrameLoader: LatestFrameLoading {
     func loadLatestFrameData() throws -> Data {
         throw TestError.forced
+    }
+
+    func hasRecentFrame(maxAge: TimeInterval) -> Bool {
+        false
     }
 }
 
@@ -490,6 +536,10 @@ private final class ComposeProxySpy: ComposeTextProxy {
 private final class ComposeEventRecorder {
     var clearCount = 0
     var insertedTexts: [String] = []
+}
+
+private final class ScreenCaptureRequestRecorder {
+    var requestCount = 0
 }
 
 private final class ClosureComposeProxy: ComposeTextProxy {

@@ -2,6 +2,9 @@ import SwiftUI
 #if canImport(UIKit)
 import UIKit
 #endif
+#if canImport(ReplayKit)
+import ReplayKit
+#endif
 
 struct S004PermissionGuideView: View {
     @EnvironmentObject private var state: HostAppState
@@ -9,9 +12,12 @@ struct S004PermissionGuideView: View {
     @State private var hasMotekeyEnabled = false
     @State private var hasManuallyConfirmedKeyboardSetup = false
     @State private var hasAcknowledgedScreenRecording = false
+    @State private var isScreenRecordingActive = false
     @State private var showError = false
     @State private var hasReturnedFromSettings = false
     @State private var didOpenSystemSettings = false
+    private let recordingStatusTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
+    private let broadcastPickerTag = 0x4D4F5445 // "MOTE"
 
     var body: some View {
         ScrollView {
@@ -70,18 +76,31 @@ struct S004PermissionGuideView: View {
                 }
                 .foregroundStyle(.secondary)
 
+                Button(HostCopy.S004.startRecordingButton) {
+                    startScreenRecordingFromApp()
+                }
+                .buttonStyle(.borderedProminent)
+
+                Text(isScreenRecordingActive
+                     ? HostCopy.S004.recordingStatusActive
+                     : HostCopy.S004.recordingStatusInactive)
+                    .font(.caption)
+                    .foregroundStyle(isScreenRecordingActive ? .green : .secondary)
+
                 Toggle(HostCopy.S004.recordingAcknowledgement, isOn: $hasAcknowledgedScreenRecording)
 
                 Button(HostCopy.S004.next) {
                     let keyboardReady = hasMotekeyEnabled || hasManuallyConfirmedKeyboardSetup
+                    let screenRecordingReady = isScreenRecordingActive || hasAcknowledgedScreenRecording
                     state.updatePermissionFlags(
                         fullAccessGranted: keyboardReady,
-                        screenRecordingAcknowledged: hasAcknowledgedScreenRecording
+                        screenRecordingAcknowledged: screenRecordingReady
                     )
                     state.navigationPath.append(HostRoute.keyboardComplete)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(!((hasMotekeyEnabled || hasManuallyConfirmedKeyboardSetup) && hasAcknowledgedScreenRecording))
+                .disabled(!((hasMotekeyEnabled || hasManuallyConfirmedKeyboardSetup)
+                          && (isScreenRecordingActive || hasAcknowledgedScreenRecording)))
 
                 if showError {
                     Text(HostCopy.S004.permissionError)
@@ -101,15 +120,20 @@ struct S004PermissionGuideView: View {
         .onAppear {
             hasAcknowledgedScreenRecording = state.savedScreenRecordingAcknowledgement()
             checkKeyboardPermission(updateErrorState: false)
+            refreshScreenRecordingStatus()
         }
         .onChange(of: hasAcknowledgedScreenRecording) { _, value in
             state.updatePermissionFlags(screenRecordingAcknowledged: value)
+        }
+        .onReceive(recordingStatusTimer) { _ in
+            refreshScreenRecordingStatus()
         }
 #if canImport(UIKit)
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
             let shouldUpdateError = didOpenSystemSettings
             hasReturnedFromSettings = hasReturnedFromSettings || shouldUpdateError
             checkKeyboardPermission(updateErrorState: shouldUpdateError)
+            refreshScreenRecordingStatus()
             didOpenSystemSettings = false
         }
 #endif
@@ -136,6 +160,44 @@ struct S004PermissionGuideView: View {
         didOpenSystemSettings = true
         guard let settingsURL = URL(string: UIApplication.openSettingsURLString) else { return }
         UIApplication.shared.open(settingsURL)
+#endif
+    }
+
+    private func refreshScreenRecordingStatus() {
+        let active = state.isScreenRecordingActive()
+        isScreenRecordingActive = active
+        if active && !hasAcknowledgedScreenRecording {
+            hasAcknowledgedScreenRecording = true
+        }
+    }
+
+    private func startScreenRecordingFromApp() {
+#if canImport(UIKit) && canImport(ReplayKit)
+        guard let windowScene = UIApplication.shared.connectedScenes
+            .compactMap({ $0 as? UIWindowScene })
+            .first,
+              let hostView = windowScene.windows.first(where: \.isKeyWindow)?.rootViewController?.view else {
+            return
+        }
+
+        let picker: RPSystemBroadcastPickerView
+        if let existing = hostView.viewWithTag(broadcastPickerTag) as? RPSystemBroadcastPickerView {
+            picker = existing
+        } else {
+            picker = RPSystemBroadcastPickerView(frame: CGRect(x: -1000, y: -1000, width: 1, height: 1))
+            picker.tag = broadcastPickerTag
+            hostView.addSubview(picker)
+        }
+
+        picker.preferredExtension = "com.motekey.app.broadcast"
+        picker.showsMicrophoneButton = false
+        hostView.layoutIfNeeded()
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            if let button = picker.subviews.compactMap({ $0 as? UIButton }).first {
+                button.sendActions(for: .touchUpInside)
+            }
+        }
 #endif
     }
 }

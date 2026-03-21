@@ -31,6 +31,9 @@ enum KeyboardRuntimeInstaller {
             },
             hasFullAccess: { [weak inputViewController] in
                 inputViewController?.hasFullAccess ?? false
+            },
+            requestScreenCaptureStart: { [weak inputViewController] in
+                ScreenCaptureStarter.requestSystemBroadcastStart(from: inputViewController?.view)
             }
         )
     }

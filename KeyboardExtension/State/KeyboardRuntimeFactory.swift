@@ -12,7 +12,8 @@ struct KeyboardRuntimeFactory {
     static func makeAppState(
         clearMarkedText: @escaping () -> Void = {},
         insertText: @escaping (String) -> Void,
-        hasFullAccess: (() -> Bool)? = nil
+        hasFullAccess: (() -> Bool)? = nil,
+        requestScreenCaptureStart: (() -> Void)? = nil
     ) -> AppState? {
         let appGroupURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: appGroupSuiteName)
@@ -45,6 +46,7 @@ struct KeyboardRuntimeFactory {
             replyGenerator: geminiService,
             profileStore: profileStore,
             permissionChecker: permissionChecker,
+            requestScreenCaptureStart: requestScreenCaptureStart,
             composeProxy: composeProxy
         )
     }
