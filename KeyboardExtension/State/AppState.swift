@@ -436,9 +436,14 @@ final class AppState: ObservableObject {
                 }
                 candidates = normalized
             } catch {
-                guard !(error is CancellationError), isUsingManualContextFallback else {
+                guard !(error is CancellationError) else {
                     throw error
                 }
+
+                guard isUsingManualContextFallback || shouldUseOfflineReplyFallback(for: error) else {
+                    throw error
+                }
+
                 candidates = makeLocalReplyCandidates(
                     chatContext: chatContext,
                     relationProfile: relationProfile
@@ -482,6 +487,23 @@ final class AppState: ObservableObject {
         }
     }
 
+    private func shouldUseOfflineReplyFallback(for error: Error) -> Bool {
+        if error is URLError {
+            return true
+        }
+
+        guard let geminiError = error as? GeminiServiceError else {
+            return false
+        }
+
+        switch geminiError {
+        case .missingAPIKey:
+            return false
+        default:
+            return true
+        }
+    }
+
     private func generateAskUserQuestionsWithFallback(context: AskUserContext) async throws -> [AskUserQuestion] {
         do {
             let questions = try await questionGenerator.generateQuestions(context: context)
@@ -494,12 +516,72 @@ final class AppState: ObservableObject {
                 throw error
             }
 
-            // Gemini通信失敗時は黙って定型質問に落とさず、UIで原因を表示する。
-            if error is URLError || error is GeminiServiceError {
+            // Missing API key は設定ミスとして明示的に通知する。
+            if let geminiError = error as? GeminiServiceError,
+               case .missingAPIKey = geminiError {
                 throw error
             }
+
+            if isOfflineAskUserFallbackEligible(error) {
+                return offlineAskUserQuestions(for: context)
+            }
+
             return defaultAskUserQuestions()
         }
+    }
+
+    private func isOfflineAskUserFallbackEligible(_ error: Error) -> Bool {
+        if error is URLError {
+            return true
+        }
+
+        guard let geminiError = error as? GeminiServiceError else {
+            return false
+        }
+
+        switch geminiError {
+        case .missingAPIKey:
+            return false
+        default:
+            return true
+        }
+    }
+
+    private func offlineAskUserQuestions(for context: AskUserContext) -> [AskUserQuestion] {
+        let message = latestPartnerMessage(from: context.chatContext)
+        guard isToiletPaperRestockRequest(message) else {
+            return defaultAskUserQuestions()
+        }
+
+        return [
+            AskUserQuestion(
+                index: 0,
+                text: "いつ買って帰れる？",
+                options: [
+                    AskUserOption(label: "帰り道で買える", value: "buy_on_way_home"),
+                    AskUserOption(label: "夜遅めなら買える", value: "buy_late_evening"),
+                    AskUserOption(label: "今日は難しい", value: "cannot_buy_today")
+                ]
+            ),
+            AskUserQuestion(
+                index: 1,
+                text: "銘柄やタイプの希望はある？",
+                options: [
+                    AskUserOption(label: "いつもののでOK", value: "usual_brand_ok"),
+                    AskUserOption(label: "指定の銘柄がある", value: "specific_brand_required"),
+                    AskUserOption(label: "シングル/ダブルを確認したい", value: "confirm_paper_type")
+                ]
+            ),
+            AskUserQuestion(
+                index: 2,
+                text: "返信で最後に何を添える？",
+                options: [
+                    AskUserOption(label: "買ったら連絡すると伝える", value: "report_after_purchase"),
+                    AskUserOption(label: "他の不足品も聞く", value: "ask_other_supplies"),
+                    AskUserOption(label: "難しい場合の代替案を伝える", value: "offer_alternative_plan")
+                ]
+            )
+        ]
     }
 
     private func defaultAskUserQuestions() -> [AskUserQuestion] {
@@ -538,28 +620,84 @@ final class AppState: ObservableObject {
         chatContext: String,
         relationProfile: RelationProfile
     ) -> [ReplyCandidate] {
+        let message = latestPartnerMessage(from: chatContext)
+        let mention = partnerMentionPrefix(from: relationProfile.partnerName)
+
+        if isToiletPaperRestockRequest(message) {
+            return [
+                ReplyCandidate(text: "\(mention)もちろん、帰りにトイレットペーパー買って帰るね。"),
+                ReplyCandidate(text: "今夜ドラッグストアに寄って、なくなる前に補充しておくよ。"),
+                ReplyCandidate(text: "ほかに足りない日用品があれば一緒に買ってくるから教えて。")
+            ]
+        }
+
         let snippet = latestPartnerMessageSnippet(from: chatContext)
-        let partner = relationProfile.partnerName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let mention = partner.isEmpty ? "" : "\(partner)、"
-        let topic = snippet.isEmpty ? "内容" : snippet
+        let firstLine: String
+        if snippet.isEmpty {
+            firstLine = "\(mention)メッセージありがとう。内容を確認したよ。"
+        } else {
+            firstLine = "\(mention)メッセージありがとう。\(snippet)について確認したよ。"
+        }
 
         return [
-            ReplyCandidate(text: "\(mention)メッセージありがとう。今の\(topic)は確認したよ。"),
-            ReplyCandidate(text: "できるだけ今日中に対応するように動くね。必要な条件があれば教えて。"),
-            ReplyCandidate(text: "もし今日が難しければ代わりの案もすぐ出すから、希望を一言もらえると助かる。")
+            ReplyCandidate(text: firstLine),
+            ReplyCandidate(text: "今日のうちにできるところまで進めて、終わったら連絡するね。"),
+            ReplyCandidate(text: "必要な条件や希望があれば先に教えてくれると助かる。")
         ]
     }
 
-    private func latestPartnerMessageSnippet(from chatContext: String) -> String {
+    private func partnerMentionPrefix(from raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "" }
+
+        let normalized = trimmed.lowercased()
+        let genericNames: Set<String> = ["パートナー", "相手", "partner"]
+        if genericNames.contains(trimmed) || genericNames.contains(normalized) {
+            return ""
+        }
+
+        return "\(trimmed)、"
+    }
+
+    private func isToiletPaperRestockRequest(_ text: String) -> Bool {
+        let normalized = text
+            .replacingOccurrences(of: " ", with: "")
+            .replacingOccurrences(of: "　", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !normalized.isEmpty else { return false }
+
+        let hasTarget = normalized.contains("トイレットペーパー") || normalized.contains("トイペ")
+        let hasBuyIntent = normalized.contains("買って") || normalized.contains("買ってきて")
+        let hasUrgency = normalized.contains("なくなりそう") || normalized.contains("ない")
+
+        return hasTarget && (hasBuyIntent || hasUrgency)
+    }
+
+    private func latestPartnerMessage(from chatContext: String) -> String {
         let trimmed = chatContext.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return "" }
 
         if let data = trimmed.data(using: .utf8),
-           let payload = try? JSONDecoder().decode(ChatContextPayload.self, from: data),
-           let lastMessage = payload.last_message {
-            return shortSnippet(from: lastMessage)
+           let payload = try? JSONDecoder().decode(ChatContextPayload.self, from: data) {
+            if let last = payload.last_message?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !last.isEmpty {
+                return last
+            }
+
+            if let latestPartner = payload.messages.reversed().first(where: { $0.speaker == .partner }) {
+                let text = latestPartner.text.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !text.isEmpty {
+                    return text
+                }
+            }
         }
-        return shortSnippet(from: trimmed)
+
+        return trimmed
+    }
+
+    private func latestPartnerMessageSnippet(from chatContext: String) -> String {
+        shortSnippet(from: latestPartnerMessage(from: chatContext))
     }
 
     private func shortSnippet(from text: String) -> String {

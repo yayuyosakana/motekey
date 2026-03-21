@@ -204,6 +204,56 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertTrue(appState.fallbackDetailMessage?.contains("Gemini APIキー") ?? false)
     }
 
+    func testRateLimitedQuestionGenerationUsesOfflineQuestions() async {
+        let context = """
+        {"chat_detected":true,"messages":[{"speaker":"partner","text":"トイレットペーパーなくなりそうだから買ってきてくれない？"}],"last_speaker":"partner","last_message":"トイレットペーパーなくなりそうだから買ってきてくれない？"}
+        """
+        let appState = makeAppState(
+            visionExtractor: ImmediateVisionExtractor(context: context),
+            questionGenerator: RateLimitedQuestionGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+
+        await waitUntil("rate-limited question generation should still open ask-user") {
+            appState.currentScreen == .askUser && !appState.isAIProcessing
+        }
+
+        XCTAssertEqual(appState.fallbackReason, .none)
+        XCTAssertEqual(appState.askUserQuestions.count, 3)
+        XCTAssertEqual(appState.askUserQuestions.first?.text, "いつ買って帰れる？")
+        XCTAssertTrue(appState.askUserQuestions.allSatisfy { $0.options.count == 3 })
+    }
+
+    func testRateLimitedReplyGenerationUsesOfflineCandidates() async {
+        let context = """
+        {"chat_detected":true,"messages":[{"speaker":"partner","text":"トイレットペーパーなくなりそうだから買ってきてくれない？"}],"last_speaker":"partner","last_message":"トイレットペーパーなくなりそうだから買ってきてくれない？"}
+        """
+        let appState = makeAppState(
+            visionExtractor: ImmediateVisionExtractor(context: context),
+            questionGenerator: ImmediateQuestionGenerator(),
+            replyGenerator: RateLimitedReplyGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+        await waitUntil("ask-user should be shown before answering") {
+            appState.currentScreen == .askUser
+        }
+
+        appState.selectOption("a")
+        appState.selectOption("a")
+        appState.selectOption("a")
+
+        await waitUntil("rate-limited reply generation should still end at stage") {
+            appState.currentScreen == .stage && !appState.isAIProcessing
+        }
+
+        XCTAssertGreaterThanOrEqual(appState.generatedCandidates.count, 2)
+        XCTAssertTrue(appState.generatedCandidates.contains { $0.text.contains("トイレットペーパー") })
+        XCTAssertFalse(appState.generatedCandidates.contains { $0.text.contains("了解") })
+        XCTAssertFalse(appState.generatedCandidates.contains { $0.text.contains("パートナー") })
+    }
+
     func testManualFallbackContinueTransitionsToAskUserFlow() async {
         let appState = makeAppState(
             frameLoader: MissingFrameLoader(),
@@ -499,6 +549,12 @@ private struct MissingAPIKeyQuestionGenerator: AskUserQuestionGenerating {
     }
 }
 
+private struct RateLimitedQuestionGenerator: AskUserQuestionGenerating {
+    func generateQuestions(context: AskUserContext) async throws -> [AskUserQuestion] {
+        throw GeminiServiceError.invalidHTTPStatus(429)
+    }
+}
+
 private struct ImmediateReplyGenerator: ReplyGenerating {
     func generateReplyCandidates(
         chatContext: String,
@@ -534,6 +590,17 @@ private struct FailingReplyGenerator: ReplyGenerating {
         relationProfile: RelationProfile
     ) async throws -> [ReplyCandidate] {
         throw TestError.forced
+    }
+}
+
+private struct RateLimitedReplyGenerator: ReplyGenerating {
+    func generateReplyCandidates(
+        chatContext: String,
+        answers: [Int : String],
+        textStyleProfile: TextStyleProfile,
+        relationProfile: RelationProfile
+    ) async throws -> [ReplyCandidate] {
+        throw GeminiServiceError.invalidHTTPStatus(429)
     }
 }
 

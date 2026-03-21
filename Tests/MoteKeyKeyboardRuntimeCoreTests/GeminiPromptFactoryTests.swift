@@ -50,5 +50,6 @@ final class GeminiPromptFactoryTests: XCTestCase {
         XCTAssertTrue(prompt.contains("毎回同じ定型にしない"))
         XCTAssertTrue(prompt.contains("思考放棄"))
         XCTAssertTrue(prompt.contains("出力は JSON のみ"))
+        XCTAssertTrue(prompt.contains("トイレットペーパーなくなりそうだから買ってきてくれない？"))
     }
 }
