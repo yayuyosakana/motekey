@@ -17,7 +17,7 @@ let package = Package(
         .target(
             name: "MoteKeyConfig",
             path: "Config",
-            exclude: ["Secrets.xcconfig.template"],
+            exclude: ["Secrets.xcconfig", "Secrets.xcconfig.template"],
             sources: ["APIConfig.swift"]
         ),
         .target(

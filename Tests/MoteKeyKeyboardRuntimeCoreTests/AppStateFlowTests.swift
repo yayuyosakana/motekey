@@ -86,6 +86,48 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertGreaterThan(cancelledCount, 0)
     }
 
+    func testQuestionGenerationFailureTransitionsToFallbackWithoutDefaultQuestions() async {
+        let appState = makeAppState(
+            visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
+            questionGenerator: FailingQuestionGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+
+        await waitUntil("question generation failure should show fallback") {
+            appState.currentScreen == .fallback && !appState.isAIProcessing
+        }
+
+        XCTAssertEqual(appState.fallbackReason, .apiError)
+        XCTAssertEqual(appState.askUserQuestions, [])
+        XCTAssertEqual(appState.askUserAnswers, [:])
+        XCTAssertEqual(appState.currentQuestionIndex, 0)
+    }
+
+    func testManualFallbackQuestionFailureStaysOnFallbackWithoutDefaultQuestions() async {
+        let appState = makeAppState(
+            frameLoader: MissingFrameLoader(),
+            questionGenerator: FailingQuestionGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+        await waitUntil("missing frame should show fallback") {
+            appState.currentScreen == .fallback && !appState.isAIProcessing
+        }
+        XCTAssertEqual(appState.fallbackReason, .imageCaptureFailed)
+
+        appState.manualFallbackInput = "相手のメッセージ"
+        appState.continueFromManualFallbackInput()
+
+        await waitUntil("manual fallback question generation failure should return to fallback") {
+            appState.currentScreen == .fallback && !appState.isAIProcessing
+        }
+        XCTAssertEqual(appState.fallbackReason, .apiError)
+        XCTAssertEqual(appState.askUserQuestions, [])
+        XCTAssertEqual(appState.askUserAnswers, [:])
+        XCTAssertEqual(appState.currentQuestionIndex, 0)
+    }
+
     func testReplyCandidatesKeepGeneratorOrderWithoutReorderUI() async {
         let expected = [
             ReplyCandidate(text: "chip-1"),
@@ -170,6 +212,12 @@ private struct StaticFrameLoader: LatestFrameLoading {
     }
 }
 
+private struct MissingFrameLoader: LatestFrameLoading {
+    func loadLatestFrameData() throws -> Data {
+        throw TestError.forced
+    }
+}
+
 private struct ImmediateVisionExtractor: VisionContextExtracting {
     let context: String
 
@@ -229,6 +277,12 @@ private struct ImmediateQuestionGenerator: AskUserQuestionGenerating {
     }
 }
 
+private struct FailingQuestionGenerator: AskUserQuestionGenerating {
+    func generateQuestions(context: AskUserContext) async throws -> [AskUserQuestion] {
+        throw TestError.forced
+    }
+}
+
 private struct ImmediateReplyGenerator: ReplyGenerating {
     func generateReplyCandidates(
         chatContext: String,
@@ -264,6 +318,10 @@ private struct StaticProfileStore: ProfileStore {
     func loadRelationProfile() -> RelationProfile {
         RelationProfile(partnerName: "partner", relationshipSummary: "girlfriend", cautionNotes: "")
     }
+}
+
+private enum TestError: Error {
+    case forced
 }
 
 private actor CancellationProbe {

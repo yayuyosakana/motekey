@@ -281,13 +281,7 @@ final class AppState: ObservableObject {
 
             let context = AskUserContext(chatContext: contextText)
 
-            let questions: [AskUserQuestion]
-            do {
-                questions = try await questionGenerator.generateQuestions(context: context)
-            } catch {
-                if error is CancellationError { throw error }
-                questions = makeDefaultAskUserQuestions()
-            }
+            let questions = try await questionGenerator.generateQuestions(context: context)
             guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
                 throw RuntimeError.invalidQuestionResponse
             }
@@ -338,13 +332,7 @@ final class AppState: ObservableObject {
         do {
             let context = AskUserContext(chatContext: chatContext)
 
-            let questions: [AskUserQuestion]
-            do {
-                questions = try await questionGenerator.generateQuestions(context: context)
-            } catch {
-                if error is CancellationError { throw error }
-                questions = makeDefaultAskUserQuestions()
-            }
+            let questions = try await questionGenerator.generateQuestions(context: context)
             guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
                 throw RuntimeError.invalidQuestionResponse
             }
@@ -365,35 +353,4 @@ final class AppState: ObservableObject {
         }
     }
 
-    private func makeDefaultAskUserQuestions() -> [AskUserQuestion] {
-        [
-            AskUserQuestion(
-                index: 0,
-                text: "まず伝えるべき事実はどれですか？",
-                options: [
-                    AskUserOption(label: "今の状況を具体的に伝える", value: "state_concrete"),
-                    AskUserOption(label: "時間の見通しを伝える", value: "time_estimate"),
-                    AskUserOption(label: "未確定であることを伝える", value: "state_uncertain")
-                ]
-            ),
-            AskUserQuestion(
-                index: 1,
-                text: "次の行動として近いものは？",
-                options: [
-                    AskUserOption(label: "今日中に対応する", value: "act_today"),
-                    AskUserOption(label: "明日対応する", value: "act_tomorrow"),
-                    AskUserOption(label: "代替案を提案する", value: "propose_alternative")
-                ]
-            ),
-            AskUserQuestion(
-                index: 2,
-                text: "相手への配慮として含める要素は？",
-                options: [
-                    AskUserOption(label: "謝意を先に伝える", value: "thanks_first"),
-                    AskUserOption(label: "負担軽減の提案をする", value: "reduce_burden"),
-                    AskUserOption(label: "確認質問を添える", value: "ask_confirmation")
-                ]
-            )
-        ]
-    }
 }
