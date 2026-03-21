@@ -122,7 +122,10 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
 
         let body = GeminiGenerateContentRequest(
             contents: [.init(parts: parts)],
-            generationConfig: .init(responseMimeType: "application/json", temperature: 0.2)
+            generationConfig: .init(
+                responseMimeType: "application/json",
+                temperature: generationTemperature(for: callType)
+            )
         )
         request.httpBody = try encoder.encode(body)
 
@@ -168,6 +171,18 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
             throw GeminiServiceError.emptyResponse
         }
         return text
+    }
+
+    private func generationTemperature(for callType: APIConfig.GeminiCallType) -> Double {
+        switch callType {
+        case .replyGeneration:
+            // 返信候補は画一化しやすいため、やや高めにして語彙と展開の幅を確保する。
+            return 0.45
+        case .askUserQuestionGeneration:
+            return 0.3
+        case .textHabitAnalysis, .visionChatContextExtraction:
+            return 0.2
+        }
     }
 
     private func isValidVisionPayload(_ payload: ChatContextPayload) -> Bool {
