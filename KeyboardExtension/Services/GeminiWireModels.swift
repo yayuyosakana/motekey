@@ -41,6 +41,7 @@ struct GeminiGenerateContentResponse: Decodable {
 }
 
 enum GeminiServiceError: Error {
+    case missingAPIKey
     case invalidURL
     case invalidHTTPStatus(Int)
     case emptyResponse

@@ -84,7 +84,7 @@ final class HostAppState: ObservableObject {
     }
 
     func saveRelationProfile() {
-        let nickname = partnerNickname.isEmpty ? HostCopy.Common.defaultPartnerName : partnerNickname
+        let nickname = normalizedNickname(partnerNickname)
         let profile = RelationProfile(
             partnerNickname: nickname,
             relationshipType: relationshipType,
@@ -112,7 +112,7 @@ final class HostAppState: ObservableObject {
     }
 
     func saveRelationDraft(_ draft: RelationDraft) {
-        partnerNickname = draft.nickname.isEmpty ? HostCopy.Common.defaultPartnerName : draft.nickname
+        partnerNickname = normalizedNickname(draft.nickname)
         relationshipType = draft.relationshipType
         datingStartDate = draft.datingStartDate
         marriageDate = draft.includeMarriageDate ? draft.marriageDate : nil
@@ -171,5 +171,10 @@ final class HostAppState: ObservableObject {
 
     func resetToHome() {
         navigationPath = NavigationPath()
+    }
+
+    private func normalizedNickname(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed
     }
 }

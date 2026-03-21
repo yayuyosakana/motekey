@@ -109,7 +109,7 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertFalse(appState.isAIProcessing)
     }
 
-    func testKeyboardTabDuringAskUserReturnsToKeyboardEvenWhenOldStageCandidatesExist() async {
+    func testStartingNewAskUserFlowClearsOldStageCandidates() async {
         let appState = makeAppState(
             visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
             questionGenerator: ImmediateQuestionGenerator()
@@ -125,7 +125,7 @@ final class AppStateFlowTests: XCTestCase {
         appState.handleBottomTabTap(.keyboard)
 
         XCTAssertEqual(appState.currentScreen, .keyboard)
-        XCTAssertEqual(appState.generatedCandidates, previousCandidates)
+        XCTAssertEqual(appState.generatedCandidates, [])
         XCTAssertEqual(appState.askUserQuestions, [])
         XCTAssertEqual(appState.askUserAnswers, [:])
         XCTAssertEqual(appState.currentQuestionIndex, 0)
@@ -186,6 +186,22 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertTrue(appState.askUserQuestions.allSatisfy { $0.options.count == 3 })
         XCTAssertEqual(appState.askUserAnswers, [:])
         XCTAssertEqual(appState.currentQuestionIndex, 0)
+    }
+
+    func testMissingAPIKeyFailureShowsDedicatedFallbackReason() async {
+        let appState = makeAppState(
+            visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
+            questionGenerator: MissingAPIKeyQuestionGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+
+        await waitUntil("missing api key should show fallback") {
+            appState.currentScreen == .fallback && !appState.isAIProcessing
+        }
+
+        XCTAssertEqual(appState.fallbackReason, .apiKeyMissing)
+        XCTAssertTrue(appState.fallbackDetailMessage?.contains("Gemini APIキー") ?? false)
     }
 
     func testManualFallbackContinueTransitionsToAskUserFlow() async {
@@ -474,6 +490,12 @@ private struct ImmediateQuestionGenerator: AskUserQuestionGenerating {
 private struct FailingQuestionGenerator: AskUserQuestionGenerating {
     func generateQuestions(context: AskUserContext) async throws -> [AskUserQuestion] {
         throw TestError.forced
+    }
+}
+
+private struct MissingAPIKeyQuestionGenerator: AskUserQuestionGenerating {
+    func generateQuestions(context: AskUserContext) async throws -> [AskUserQuestion] {
+        throw GeminiServiceError.missingAPIKey
     }
 }
 

@@ -59,7 +59,7 @@ struct KeyboardRuntimeFactory {
         let frameLoader = InMemoryFrameLoader()
         let profileStore = InMemoryProfileStore(
             textStyleProfile: .init(tone: "friendly", endingStyle: "casual", emojiStyle: "light"),
-            relationProfile: .init(partnerName: "パートナー", relationshipSummary: "彼女", cautionNotes: "")
+            relationProfile: .init(partnerName: "ゆい", relationshipSummary: "彼女", cautionNotes: "")
         )
         return AppState(
             frameLoader: frameLoader,

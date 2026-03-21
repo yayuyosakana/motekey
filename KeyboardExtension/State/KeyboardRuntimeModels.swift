@@ -27,6 +27,7 @@ enum BottomTab {
 enum FallbackReason: Equatable {
     case none
     case imageCaptureFailed
+    case apiKeyMissing
     case apiTimeout
     case apiError
 }

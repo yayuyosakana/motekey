@@ -5,11 +5,17 @@ struct FallbackLayerView: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            Text("文脈抽出に失敗しました")
+            Text("AI処理に失敗しました")
                 .font(.headline)
             Text(reasonText)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            if let detail = appState.fallbackDetailMessage, !detail.isEmpty {
+                Text(detail)
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
 
             TextField("相手のメッセージを手入力", text: $appState.manualFallbackInput, axis: .vertical)
                 .textFieldStyle(.roundedBorder)
@@ -42,6 +48,8 @@ struct FallbackLayerView: View {
             return "エラー内容は不明です。"
         case .imageCaptureFailed:
             return "画面キャプチャを取得できませんでした。ホストアプリの使用準備で画面収録を開始してから再試行してください。"
+        case .apiKeyMissing:
+            return "Gemini APIキーが見つかりません。"
         case .apiTimeout:
             return "APIがタイムアウトしました。"
         case .apiError:

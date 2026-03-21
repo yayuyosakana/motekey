@@ -1,8 +1,14 @@
 import Foundation
 import MoteKeyConfig
 import MoteKeyShared
+import os
 
 final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuestionGenerating, ReplyGenerating {
+    private static let logger = Logger(
+        subsystem: "com.motekey.keyboard",
+        category: "GeminiKeyboardRuntimeService"
+    )
+
     private let session: URLSession
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
@@ -80,20 +86,25 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
             todayDate: formatter.string(from: Date())
         )
 
-        let text = try await generateContent(
-            callType: .replyGeneration,
-            parts: [.init(text: prompt, inlineData: nil)]
-        )
+        let firstPayload = try await generateReplyPayload(prompt: prompt)
+        if let candidates = validatedReplyCandidates(from: firstPayload) {
+            return candidates
+        }
 
-        let jsonText = try extractJSONObject(from: text)
-        let payload = try decoder.decode(ReplyCandidatesPayload.self, from: Data(jsonText.utf8))
-        guard payload.isValidForMVP else {
+        Self.logger.notice("Gemini reply candidates failed quality gate. Retrying once.")
+        let retryPrompt = """
+        \(prompt)
+
+        追加指示:
+        - 先ほどの禁止語チェックに抵触しない内容で再生成すること
+        - 同じ文末の反復を避け、実行アクションを明確にすること
+        """
+
+        let secondPayload = try await generateReplyPayload(prompt: retryPrompt)
+        guard let retryCandidates = validatedReplyCandidates(from: secondPayload) else {
             throw RuntimeError.invalidReplyResponse
         }
-        let candidates = payload.chips
-            .map { ReplyCandidate(text: $0.text.trimmingCharacters(in: .whitespacesAndNewlines)) }
-            .filter { !$0.text.isEmpty }
-        return candidates
+        return retryCandidates
     }
 
     private func extractJSONObject(from text: String) throws -> String {
@@ -113,6 +124,12 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         }
 
         let apiKey = APIConfig.geminiAPIKey(for: callType)
+        guard !apiKey.isEmpty else {
+            Self.logger.error(
+                "Gemini request blocked: missing API key for callType=\(String(describing: callType), privacy: .public)"
+            )
+            throw GeminiServiceError.missingAPIKey
+        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -129,32 +146,55 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         )
         request.httpBody = try encoder.encode(body)
 
-        let data = try await requestWithSingleRetryIfRateLimited(request)
+        Self.logger.debug(
+            "Gemini request start callType=\(String(describing: callType), privacy: .public)"
+        )
+
+        let data = try await requestWithSingleRetryIfRateLimited(request, callType: callType)
         return try parseResponseText(data: data)
     }
 
-    private func requestWithSingleRetryIfRateLimited(_ request: URLRequest) async throws -> Data {
+    private func requestWithSingleRetryIfRateLimited(
+        _ request: URLRequest,
+        callType: APIConfig.GeminiCallType
+    ) async throws -> Data {
         let (firstData, firstResponse) = try await session.data(for: request)
         guard let firstHTTP = firstResponse as? HTTPURLResponse else {
             throw GeminiServiceError.emptyResponse
         }
+
+        Self.logger.debug(
+            "Gemini response status=\(firstHTTP.statusCode, privacy: .public) callType=\(String(describing: callType), privacy: .public)"
+        )
 
         if (200..<300).contains(firstHTTP.statusCode) {
             return firstData
         }
 
         if firstHTTP.statusCode == 429 {
+            Self.logger.notice(
+                "Gemini rate limited, retrying once. callType=\(String(describing: callType), privacy: .public)"
+            )
             try await Task.sleep(nanoseconds: 2_000_000_000)
             let (retryData, retryResponse) = try await session.data(for: request)
             guard let retryHTTP = retryResponse as? HTTPURLResponse else {
                 throw GeminiServiceError.emptyResponse
             }
+            Self.logger.debug(
+                "Gemini retry status=\(retryHTTP.statusCode, privacy: .public) callType=\(String(describing: callType), privacy: .public)"
+            )
             guard (200..<300).contains(retryHTTP.statusCode) else {
+                Self.logger.error(
+                    "Gemini retry failed status=\(retryHTTP.statusCode, privacy: .public) body=\(Self.responseBodyPreview(retryData), privacy: .public)"
+                )
                 throw GeminiServiceError.invalidHTTPStatus(retryHTTP.statusCode)
             }
             return retryData
         }
 
+        Self.logger.error(
+            "Gemini failed status=\(firstHTTP.statusCode, privacy: .public) callType=\(String(describing: callType), privacy: .public) body=\(Self.responseBodyPreview(firstData), privacy: .public)"
+        )
         throw GeminiServiceError.invalidHTTPStatus(firstHTTP.statusCode)
     }
 
@@ -171,18 +211,6 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
             throw GeminiServiceError.emptyResponse
         }
         return text
-    }
-
-    private func generationTemperature(for callType: APIConfig.GeminiCallType) -> Double {
-        switch callType {
-        case .replyGeneration:
-            // 返信候補は画一化しやすいため、やや高めにして語彙と展開の幅を確保する。
-            return 0.45
-        case .askUserQuestionGeneration:
-            return 0.3
-        case .textHabitAnalysis, .visionChatContextExtraction:
-            return 0.2
-        }
     }
 
     private func isValidVisionPayload(_ payload: ChatContextPayload) -> Bool {
@@ -237,5 +265,86 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
     private func isSnakeCaseIdentifier(_ value: String) -> Bool {
         let pattern = "^[a-z0-9]+(?:_[a-z0-9]+)*$"
         return value.range(of: pattern, options: .regularExpression) != nil
+    }
+
+    private func generateReplyPayload(prompt: String) async throws -> ReplyCandidatesPayload {
+        let text = try await generateContent(
+            callType: .replyGeneration,
+            parts: [.init(text: prompt, inlineData: nil)]
+        )
+        let jsonText = try extractJSONObject(from: text)
+        return try decoder.decode(ReplyCandidatesPayload.self, from: Data(jsonText.utf8))
+    }
+
+    private func validatedReplyCandidates(from payload: ReplyCandidatesPayload) -> [ReplyCandidate]? {
+        guard payload.isValidForMVP else {
+            return nil
+        }
+
+        let candidates = payload.chips
+            .map { ReplyCandidate(text: normalizeReplyText($0.text)) }
+            .filter { !$0.text.isEmpty }
+            .filter { !containsForbiddenReplyPhrase($0.text) }
+
+        guard GeminiSchemaConstraints.replyChipCountRange.contains(candidates.count) else {
+            return nil
+        }
+        return candidates
+    }
+
+    private func normalizeReplyText(_ text: String) -> String {
+        text.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private func containsForbiddenReplyPhrase(_ text: String) -> Bool {
+        let forbiddenSubstrings = [
+            "了解",
+            "任せる",
+            "どっちでもいい",
+            "の件",
+            "パートナー"
+        ]
+
+        if forbiddenSubstrings.contains(where: { text.contains($0) }) {
+            return true
+        }
+
+        let quotePattern = "「[^」]+」"
+        if text.range(of: quotePattern, options: .regularExpression) != nil {
+            return true
+        }
+
+        let okPattern = "(?i)\\bOK\\b"
+        if text.range(of: okPattern, options: .regularExpression) != nil {
+            return true
+        }
+
+        return false
+    }
+
+    private func generationTemperature(for callType: APIConfig.GeminiCallType) -> Double {
+        switch callType {
+        case .replyGeneration:
+            return 0.55
+        case .askUserQuestionGeneration:
+            return 0.3
+        case .textHabitAnalysis, .visionChatContextExtraction:
+            return 0.2
+        }
+    }
+
+    private static func responseBodyPreview(_ data: Data) -> String {
+        guard !data.isEmpty else {
+            return "<empty>"
+        }
+
+        let raw = String(data: data, encoding: .utf8) ?? "<non-utf8>"
+        let singleLine = raw.replacingOccurrences(of: "\n", with: " ")
+            .replacingOccurrences(of: "\r", with: " ")
+        if singleLine.count <= 240 {
+            return singleLine
+        }
+        let end = singleLine.index(singleLine.startIndex, offsetBy: 240)
+        return "\(singleLine[..<end])..."
     }
 }

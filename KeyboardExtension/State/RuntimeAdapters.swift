@@ -148,13 +148,13 @@ struct AppGroupProfileStore: ProfileStore {
         if let data = defaults.data(forKey: AppGroupKeys.relationProfileData),
            let sharedProfile = try? JSONDecoder().decode(MoteKeyShared.RelationProfile.self, from: data) {
             return RelationProfile(
-                partnerName: nonEmpty(sharedProfile.nickname, fallback: "パートナー"),
+                partnerName: sanitizedPartnerName(sharedProfile.nickname),
                 relationshipSummary: sharedProfile.relationshipType,
                 cautionNotes: sharedProfile.cautionNote
             )
         }
 
-        let partnerName = defaults.string(forKey: LegacyProfileKeys.partnerName) ?? "パートナー"
+        let partnerName = sanitizedPartnerName(defaults.string(forKey: LegacyProfileKeys.partnerName) ?? "")
         let relationshipSummary = defaults.string(forKey: LegacyProfileKeys.relationSummary) ?? ""
         let cautionNotes = defaults.string(forKey: LegacyProfileKeys.cautionNotes) ?? ""
         return RelationProfile(
@@ -167,6 +167,19 @@ struct AppGroupProfileStore: ProfileStore {
     private func nonEmpty(_ value: String, fallback: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? fallback : trimmed
+    }
+
+    private func sanitizedPartnerName(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return ""
+        }
+
+        let normalized = trimmed.lowercased()
+        if trimmed == "パートナー" || trimmed == "相手" || normalized == "partner" {
+            return ""
+        }
+        return trimmed
     }
 }
 

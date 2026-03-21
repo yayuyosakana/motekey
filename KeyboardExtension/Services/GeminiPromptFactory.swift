@@ -4,8 +4,44 @@ enum GeminiPromptFactory {
 
     static func visionPrompt() -> String {
         """
-        画像からチャット文脈を抽出してください。前置き不要、JSONのみを返してください。
-        speaker は me / partner、会話が検出できない場合は chat_detected を false にしてください。
+        この画像はメッセージアプリのトーク画面のスクリーンショットです。画像からチャット文脈を構造化し、JSONのみを返してください。
+
+        厳守:
+        - 前置き/説明/コードブロックは禁止
+        - 出力は JSON オブジェクト1つのみ
+        - speaker は `me` または `partner` のみ
+        - テキストが読めない場合は推測せず null を使う
+
+        抽出ルール:
+        - 右寄せ吹き出しは `me`、左寄せ吹き出しは `partner`
+        - スタンプ/画像/動画/音声のみの発言は `text: "stamp_or_media"`
+        - ヘッダー/入力欄/タブなどアプリUIは無視
+        - 会話が検出できない場合は `chat_detected: false`
+
+        必須フォーマット:
+        {
+          "chat_detected": true,
+          "app": "LINE",
+          "messages": [
+            {
+              "speaker": "partner",
+              "text": "...",
+              "date_label": "今日",
+              "time": "18:10"
+            }
+          ],
+          "last_speaker": "partner",
+          "last_message": "..."
+        }
+
+        会話が検出できない場合:
+        {
+          "chat_detected": false,
+          "app": "unknown",
+          "messages": [],
+          "last_speaker": null,
+          "last_message": null
+        }
         """
     }
 
@@ -15,50 +51,51 @@ enum GeminiPromptFactory {
         ]
 
         return """
-        あなたは返信文生成に必要な追加情報を集める質問生成アシスタントです。
-        目的は「返信の不足コンテキスト（事実・予定・ステータス）」のみを3問3択で補完することです。
+        あなたは返信文生成のための事実確認AIです。
+        入力の `chat_context` だけを使い、質問を3問3択で生成してください。
 
-        絶対ルール:
-        - ユーザーに返信文の作り方やトーンを考えさせる質問は禁止
-        - 客観的な事実・予定・明確な選択結果のみを問う
-        - 質問は3件固定
-        - 各質問の options は3件固定
-        - options[].value は英語スネークケース
+        厳守:
+        - 出力は JSON のみ（前置き/説明/コードブロック禁止）
+        - `questions` は必ず3件
+        - 各 `options` は必ず3件
+        - `options[].value` は英語スネークケース
         - 同一質問内で options[].value は重複禁止
-        - 前置き・説明文・Markdown禁止。JSONのみを返す
+        - 返信トーンや感情表現をユーザーに考えさせる質問は禁止
+        - 質問は「事実」「予定」「制約」「優先順位」のみ
+        - 文脈と無関係な汎用質問は禁止
 
-        出力JSONスキーマ:
+        入力:
+        \(jsonString(from: payload))
+
+        出力形式:
         {
           "questions": [
             {
-              "question": "質問テキスト",
+              "question": "質問文",
               "options": [
-                { "label": "表示文言", "value": "snake_case_value" },
-                { "label": "表示文言", "value": "snake_case_value" },
-                { "label": "表示文言", "value": "snake_case_value" }
+                { "label": "選択肢1", "value": "snake_case_1" },
+                { "label": "選択肢2", "value": "snake_case_2" },
+                { "label": "選択肢3", "value": "snake_case_3" }
               ]
             },
             {
-              "question": "質問テキスト",
+              "question": "質問文",
               "options": [
-                { "label": "表示文言", "value": "snake_case_value" },
-                { "label": "表示文言", "value": "snake_case_value" },
-                { "label": "表示文言", "value": "snake_case_value" }
+                { "label": "選択肢1", "value": "snake_case_1" },
+                { "label": "選択肢2", "value": "snake_case_2" },
+                { "label": "選択肢3", "value": "snake_case_3" }
               ]
             },
             {
-              "question": "質問テキスト",
+              "question": "質問文",
               "options": [
-                { "label": "表示文言", "value": "snake_case_value" },
-                { "label": "表示文言", "value": "snake_case_value" },
-                { "label": "表示文言", "value": "snake_case_value" }
+                { "label": "選択肢1", "value": "snake_case_1" },
+                { "label": "選択肢2", "value": "snake_case_2" },
+                { "label": "選択肢3", "value": "snake_case_3" }
               ]
             }
           ]
         }
-
-        入力:
-        \(jsonString(from: payload))
         """
     }
 
@@ -84,29 +121,28 @@ enum GeminiPromptFactory {
         ]
 
         return """
-        あなたは、パートナーへの返信メッセージを代わりに考えるアシスタントです。
-        目的は「相手の感情に配慮しつつ、当事者意識のある具体的な返信」を作ることです。
-        前置きや説明文は不要。JSONのみを返してください。
+        あなたはメッセージ返信案を作るアシスタントです。入力を使って、送信可能な返信文チップを生成してください。
 
-        生成ルール:
-        - 出力は chips 2〜5件
-        - 各チップは実際にLINEで1通として送れる自然文
-        - チップ順 = 送信順として意味が通る構成にする
-        - まず相手の発話意図を判定し、次のどちらかの流れを取る:
-          - 感情共有型: 感情リアクション → 承認/労い → 具体的な展開提案
-          - 実務/トラブル型: 受容/謝意or謝罪 → 状況共有/配慮 → 具体的ネクストアクション
+        厳守:
+        - 出力は JSON のみ（前置き/説明/コードブロック禁止）
+        - `chips` は 2〜5 件
+        - 各チップは実際にそのまま送信できる自然な短文
+        - 1つ目のチップで相手の発言を受け止める
+        - 2つ目以降で、具体的な次アクション（いつ/何をする）を明示
+        - `user_responses` の値を反映し、空疎な定型文だけにしない
+        - 文体は `text_habit` を反映
+        - 毎回同じ定型にしない
 
-        文体ルール:
-        - text_habit に忠実に口調を合わせる
-        - relation.relationshipType と relation.cautionNote を反映して距離感を調整する
-        - relation.nickname が有効値（空文字・"パートナー" 以外）の場合、chipsのうち少なくとも1件で自然に呼びかける
-        - 毎回同じ定型にしない。語彙・文頭・言い回しの重複を避ける
+        絶対禁止:
+        - 「了解」「OK」「任せる」「どっちでもいい」「の件」
+        - 相手メッセージの引用復唱（例: 「...」の件）
+        - 「パートナー」という語を本文に出す
+        - 3チップ以上で同じ語尾を機械的に反復すること
+        - 思考放棄の短文のみで終えること
 
-        禁止事項:
-        - 「了解」「OK」「任せる」「どっちでもいい」等の思考放棄
-        - 相手の感情を無視した即断/説教/正論押しつけ
-        - 条件付き謝罪（例: 「不快にさせたならごめん」）
-        - 言い訳先行
+        呼称ルール:
+        - `relation.nickname` が null/空/汎用語のとき、呼び名を本文に入れない
+        - 呼び名を使う場合も自然な会話文として1回まで
 
         入力:
         \(jsonString(from: payload))
@@ -115,7 +151,8 @@ enum GeminiPromptFactory {
         {
           "chips": [
             { "text": "チップ1" },
-            { "text": "チップ2" }
+            { "text": "チップ2" },
+            { "text": "チップ3" }
           ]
         }
         """
@@ -155,7 +192,7 @@ enum GeminiPromptFactory {
 
     private static func relationPayload(from profile: RelationProfile) -> [String: Any] {
         [
-            "nickname": profile.partnerName,
+            "nickname": relationNicknameJSONValue(from: profile.partnerName),
             "relationshipType": profile.relationshipSummary,
             "datingStartDate": NSNull(),
             "marriageDate": NSNull(),
@@ -163,6 +200,26 @@ enum GeminiPromptFactory {
             "birthdayDay": NSNull(),
             "cautionNote": profile.cautionNotes
         ]
+    }
+
+    private static func relationNicknameJSONValue(from raw: String) -> Any {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            return NSNull()
+        }
+
+        let normalized = trimmed.lowercased()
+        let genericNames: Set<String> = [
+            "パートナー",
+            "partner",
+            "相手"
+        ]
+
+        if genericNames.contains(trimmed) || genericNames.contains(normalized) {
+            return NSNull()
+        }
+
+        return trimmed
     }
 
     private static func emptyChatContext() -> [String: Any] {

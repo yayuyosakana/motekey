@@ -16,7 +16,7 @@ enum HostCopy {
         static let notRegistered = "未登録"
         static let configured = "設定済み"
         static let notConfigured = "未設定"
-        static let defaultPartnerName = "パートナー"
+        static let defaultPartnerName = ""
     }
 
     enum S001 {
@@ -87,7 +87,7 @@ enum HostCopy {
 
     enum S003 {
         static let relationPrompt = "どんな関係ですか？"
-        static let nicknamePrompt = "パートナーの呼び名を教えてください"
+        static let nicknamePrompt = "相手の呼び名を教えてください"
         static let nicknamePlaceholder = "ゆいちゃん、妻、など"
         static let nicknameSkip = "わからない・決めていない"
         static let datingDatePrompt = "付き合い始めたのはいつ？"

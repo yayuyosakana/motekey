@@ -52,4 +52,16 @@ final class HostAppStateTests: XCTestCase {
 
         XCTAssertEqual(state.textHabitAnswers.count, 0)
     }
+
+    @MainActor
+    func testSaveRelationProfileKeepsNicknameEmptyWhenUserSkipsIt() throws {
+        let store = AppGroupStore(suiteName: suiteName)
+        let state = HostAppState(store: store)
+        state.partnerNickname = "   "
+
+        state.saveRelationProfile()
+
+        let saved = try XCTUnwrap(store.loadRelation())
+        XCTAssertEqual(saved.partnerNickname, "")
+    }
 }

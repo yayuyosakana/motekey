@@ -63,6 +63,25 @@ final class AppGroupProfileStoreTests: XCTestCase {
         XCTAssertEqual(loaded.cautionNotes, "平日は短文になりすぎない")
     }
 
+    func testLoadRelationProfileSanitizesGenericNickname() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
+        let shared = MoteKeyShared.RelationProfile(
+            nickname: "パートナー",
+            relationshipType: "girlfriend",
+            datingStartDate: nil,
+            marriageDate: nil,
+            birthdayMonth: nil,
+            birthdayDay: nil,
+            cautionNote: ""
+        )
+        defaults.set(try JSONEncoder().encode(shared), forKey: AppGroupKeys.relationProfileData)
+
+        let profileStore = AppGroupProfileStore(suiteName: suiteName)
+        let loaded = profileStore.loadRelationProfile()
+
+        XCTAssertEqual(loaded.partnerName, "")
+    }
+
     func testPermissionCheckerUsesSharedKeys() throws {
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suiteName))
         defaults.set(false, forKey: AppGroupKeys.permissionFullAccessGranted)

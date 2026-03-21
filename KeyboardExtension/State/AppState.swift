@@ -10,6 +10,7 @@ final class AppState: ObservableObject {
 
     @Published var isAIProcessing = false
     @Published var fallbackReason: FallbackReason = .none
+    @Published var fallbackDetailMessage: String?
     @Published var permissionIssue: PermissionIssue = .none
     @Published var manualFallbackInput = ""
     @Published var manualFallbackValidationMessage: String?
@@ -167,6 +168,7 @@ final class AppState: ObservableObject {
 
         isAIProcessing = false
         fallbackReason = .none
+        fallbackDetailMessage = nil
         permissionIssue = .none
         isUsingManualContextFallback = false
         manualFallbackInput = ""
@@ -192,6 +194,7 @@ final class AppState: ObservableObject {
 
         isAIProcessing = false
         fallbackReason = .none
+        fallbackDetailMessage = nil
         permissionIssue = .none
         isUsingManualContextFallback = false
         chatContext = ""
@@ -232,6 +235,9 @@ final class AppState: ObservableObject {
         }
 
         cancelAskUserFlow()
+        // 新規生成フロー開始時は、古い候補を残さない。
+        generatedCandidates = []
+        tappedChipHistory = []
         isAIProcessing = true
         transition(to: .loading)
         let activeFlowID = flowID
@@ -282,6 +288,7 @@ final class AppState: ObservableObject {
         }
 
         fallbackReason = classifyFallbackReason(error)
+        fallbackDetailMessage = buildFallbackDetailMessage(error)
         transition(to: .fallback)
     }
 
@@ -293,6 +300,8 @@ final class AppState: ObservableObject {
             switch geminiError {
             case .chatNotDetected:
                 return .imageCaptureFailed
+            case .missingAPIKey:
+                return .apiKeyMissing
             case .invalidHTTPStatus(let code) where code == 408 || code == 504:
                 return .apiTimeout
             default:
@@ -300,6 +309,48 @@ final class AppState: ObservableObject {
             }
         }
         return .apiError
+    }
+
+    private func buildFallbackDetailMessage(_ error: Error) -> String? {
+        if let urlError = error as? URLError {
+            switch urlError.code {
+            case .timedOut:
+                return "通信がタイムアウトしました。ネットワーク状態を確認してください。"
+            case .notConnectedToInternet:
+                return "インターネットに接続されていません。"
+            default:
+                return "通信エラーが発生しました。(\(urlError.code.rawValue))"
+            }
+        }
+
+        if let geminiError = error as? GeminiServiceError {
+            switch geminiError {
+            case .missingAPIKey:
+                return "Gemini APIキーが未設定です。Info.plist / Secrets.xcconfig を確認してください。"
+            case .invalidHTTPStatus(let code):
+                if code == 429 {
+                    return "Gemini API の利用上限に達しています（HTTP 429）。課金/クォータ設定を確認してください。"
+                }
+                return "Gemini API が HTTP \(code) を返しました。"
+            case .invalidJSONPayload:
+                return "Gemini API の応答JSONを解釈できませんでした。"
+            case .emptyResponse:
+                return "Gemini API の応答が空でした。"
+            case .invalidURL:
+                return "Gemini API エンドポイントURLが不正です。"
+            case .chatNotDetected:
+                return "チャット文脈を画像から抽出できませんでした。"
+            }
+        }
+
+        switch error {
+        case RuntimeError.invalidQuestionResponse:
+            return "質問生成レスポンスの形式が不正です。"
+        case RuntimeError.invalidReplyResponse:
+            return "返信候補レスポンスの形式が不正です。"
+        default:
+            return nil
+        }
     }
 
     private func runAskUserFlow(flowID: UUID) async {
@@ -311,6 +362,7 @@ final class AppState: ObservableObject {
                 guard self.flowID == flowID else { return }
                 isAIProcessing = false
                 fallbackReason = .imageCaptureFailed
+                fallbackDetailMessage = "最新フレームを取得できませんでした。画面収録が開始されているか確認してください。"
                 transition(to: .fallback)
                 return
             }
@@ -328,6 +380,7 @@ final class AppState: ObservableObject {
             currentQuestionIndex = 0
             isAIProcessing = false
             fallbackReason = .none
+            fallbackDetailMessage = nil
             transition(to: .askUser)
         } catch {
             handleFlowError(error, flowID: flowID)
@@ -398,6 +451,7 @@ final class AppState: ObservableObject {
             displayMode = .chip
             isAIProcessing = false
             fallbackReason = .none
+            fallbackDetailMessage = nil
             transition(to: .stage)
         } catch {
             handleFlowError(error, flowID: flowID)
@@ -421,6 +475,7 @@ final class AppState: ObservableObject {
             manualFallbackValidationMessage = nil
             isAIProcessing = false
             fallbackReason = .none
+            fallbackDetailMessage = nil
             transition(to: .askUser)
         } catch {
             handleFlowError(error, flowID: flowID)
@@ -436,6 +491,11 @@ final class AppState: ObservableObject {
             return questions
         } catch {
             guard !(error is CancellationError) else {
+                throw error
+            }
+
+            // Gemini通信失敗時は黙って定型質問に落とさず、UIで原因を表示する。
+            if error is URLError || error is GeminiServiceError {
                 throw error
             }
             return defaultAskUserQuestions()
@@ -479,24 +539,14 @@ final class AppState: ObservableObject {
         relationProfile: RelationProfile
     ) -> [ReplyCandidate] {
         let snippet = latestPartnerMessageSnippet(from: chatContext)
-        let prefix: String
-        switch askUserAnswers[0] {
-        case "tone_warm":
-            prefix = "うん、"
-        case "tone_concise":
-            prefix = "了解。"
-        default:
-            prefix = "了解！"
-        }
-
         let partner = relationProfile.partnerName.trimmingCharacters(in: .whitespacesAndNewlines)
-        let safePartner = partner.isEmpty ? "相手" : partner
-        let topic = snippet.isEmpty ? "その件" : "「\(snippet)」の件"
+        let mention = partner.isEmpty ? "" : "\(partner)、"
+        let topic = snippet.isEmpty ? "内容" : snippet
 
         return [
-            ReplyCandidate(text: "\(prefix)\(topic)、帰りに対応しておくね。"),
-            ReplyCandidate(text: "\(safePartner)ありがとう、\(topic)了解！ほかに必要なものある？"),
-            ReplyCandidate(text: "わかった！\(topic)、忘れずにやっておくよ。")
+            ReplyCandidate(text: "\(mention)メッセージありがとう。今の\(topic)は確認したよ。"),
+            ReplyCandidate(text: "できるだけ今日中に対応するように動くね。必要な条件があれば教えて。"),
+            ReplyCandidate(text: "もし今日が難しければ代わりの案もすぐ出すから、希望を一言もらえると助かる。")
         ]
     }
 
