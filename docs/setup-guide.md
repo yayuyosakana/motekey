@@ -1,6 +1,6 @@
 # セットアップガイド
 
-## Phase6 Bootstrap の最小確認
+## Bootstrap の最小確認
 
 このリポジトリ単体では、まず Swift Package のコアモジュールをビルド確認する。
 
@@ -15,6 +15,8 @@ make bootstrap-check
 ```bash
 ./scripts/bootstrap_check.sh
 ```
+
+GitHub Actions では `.github/workflows/bootstrap.yml` が同一チェックを `pull_request` / `push` / `workflow_dispatch` で実行する。
 
 ## 前提
 

@@ -1,7 +1,7 @@
 # pico-banana
 ハッカソンチーム: picoばな奈
 
-## Phase6 Bootstrap
+## Bootstrap Baseline
 
 このリポジトリでは、`Package.swift` を基準に以下4モジュールの基盤健全性を確認できます。
 
@@ -27,3 +27,7 @@ make bootstrap-check
 ## CI
 
 GitHub Actions (`.github/workflows/bootstrap.yml`) でも同一コマンドを実行します。
+
+- `pull_request`（`main` 向け）
+- `push`（`main` / `codex/**`）
+- `workflow_dispatch`（手動実行）
