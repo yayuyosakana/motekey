@@ -178,6 +178,15 @@ final class AppState: ObservableObject {
         !generatedCandidates.isEmpty && currentScreen != .askUser && currentScreen != .loading
     }
 
+    /// `キーボード` タブがアクティブ表示される条件（通常キーボード/ステージ）。
+    var isKeyboardTabActive: Bool {
+        currentScreen == .keyboard || currentScreen == .stage
+    }
+
+    var isFullTextTabActive: Bool {
+        currentScreen == .fullText
+    }
+
     private func startAskUserFlow() {
         guard !isAIProcessing else { return }
         let issue = permissionChecker.currentPermissionIssue()
@@ -210,16 +219,16 @@ final class AppState: ObservableObject {
     }
 
     private func switchToKeyboardAndCancelAskUserIfNeeded() {
-        let shouldForceKeyboard = currentScreen == .askUser
+        let shouldCancelAskUserFlow = currentScreen == .askUser
             || currentScreen == .loading
             || currentScreen == .fallback
             || currentScreen == .permissionBlock
 
-        if shouldForceKeyboard {
+        if shouldCancelAskUserFlow {
             cancelAskUserFlow()
         }
         displayMode = .chip
-        transition(to: shouldForceKeyboard ? .keyboard : (generatedCandidates.isEmpty ? .keyboard : .stage))
+        transition(to: generatedCandidates.isEmpty ? .keyboard : .stage)
     }
 
     private func transition(to next: KbdScreen) {

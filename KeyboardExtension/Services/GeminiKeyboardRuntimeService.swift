@@ -31,6 +31,9 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         guard payload.chat_detected else {
             throw GeminiServiceError.chatNotDetected
         }
+        guard isValidVisionPayload(payload) else {
+            throw GeminiServiceError.invalidJSONPayload
+        }
 
         let normalized = try encoder.encode(payload)
         return String(decoding: normalized, as: UTF8.self)
@@ -45,7 +48,7 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
 
         let jsonText = try extractJSONObject(from: text)
         let payload = try decoder.decode(AskUserQuestionsPayload.self, from: Data(jsonText.utf8))
-        guard payload.isValidForMVP else {
+        guard isValidQuestionPayload(payload) else {
             throw RuntimeError.invalidQuestionResponse
         }
 
@@ -169,5 +172,59 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
             throw GeminiServiceError.emptyResponse
         }
         return text
+    }
+
+    private func isValidVisionPayload(_ payload: ChatContextPayload) -> Bool {
+        if !payload.chat_detected {
+            return payload.messages.isEmpty && payload.last_speaker == nil && payload.last_message == nil
+        }
+
+        guard !payload.messages.isEmpty else { return false }
+        guard payload.messages.allSatisfy({ message in
+            let text = message.text.trimmingCharacters(in: .whitespacesAndNewlines)
+            return !text.isEmpty
+        }) else {
+            return false
+        }
+
+        guard payload.last_speaker != nil else { return false }
+        guard let lastMessage = payload.last_message?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !lastMessage.isEmpty else {
+            return false
+        }
+        return true
+    }
+
+    private func isValidQuestionPayload(_ payload: AskUserQuestionsPayload) -> Bool {
+        guard payload.isValidForMVP else { return false }
+        return payload.questions.allSatisfy { question in
+            let questionText = question.question.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !questionText.isEmpty,
+                  question.options.count == GeminiSchemaConstraints.askUserOptionCount
+            else {
+                return false
+            }
+
+            var seenValues = Set<String>()
+            for option in question.options {
+                let label = option.label.trimmingCharacters(in: .whitespacesAndNewlines)
+                let value = option.value.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !label.isEmpty, !value.isEmpty else {
+                    return false
+                }
+                guard isSnakeCaseIdentifier(value) else {
+                    return false
+                }
+                guard seenValues.insert(value).inserted else {
+                    return false
+                }
+            }
+            return true
+        }
+    }
+
+    private func isSnakeCaseIdentifier(_ value: String) -> Bool {
+        let pattern = "^[a-z0-9]+(?:_[a-z0-9]+)*$"
+        return value.range(of: pattern, options: .regularExpression) != nil
     }
 }
