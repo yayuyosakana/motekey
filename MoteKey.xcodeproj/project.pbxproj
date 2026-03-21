@@ -19,6 +19,7 @@
 		404CD1971D4F4AC34E02D0EE /* ScreenCaptureStarter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3628AA8A121A407A4BCC2538 /* ScreenCaptureStarter.swift */; };
 		52FE37386B528BC44C86BE23 /* GeminiPromptFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001DE8F8F2EE27E447BF42FC /* GeminiPromptFactory.swift */; };
 		574746A1651C0E87835CE848 /* S004PermissionGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1232E27569BFD411266C82A4 /* S004PermissionGuideView.swift */; };
+		5C18EE2A9C85531AC6C777CA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7BEB7BA3149C72243CBB355 /* Assets.xcassets */; };
 		5FABC3DE462222197EDAECCB /* MoteKeyShared in Frameworks */ = {isa = PBXBuildFile; productRef = 6B188CDC61214F635700A834 /* MoteKeyShared */; };
 		5FACBDD280BBA13DB1986FA8 /* HostCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05398030D640614AC87A7013 /* HostCopy.swift */; };
 		6823B511031F17D616C9C364 /* GeminiKeyboardRuntimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B120FFAAC5AFC2A8A10199D /* GeminiKeyboardRuntimeService.swift */; };
@@ -126,6 +127,7 @@
 		B389CA7AEB2673E63901EEB8 /* MoteKeyHostApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MoteKeyHostApp.entitlements; sourceTree = "<group>"; };
 		B43F56473FE5DB84C06CD9F9 /* HostRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostRootView.swift; sourceTree = "<group>"; };
 		C4507901832A89C26BCE1FD6 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
+		C7BEB7BA3149C72243CBB355 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C9048E140A8C30C920EF2252 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		DC50736643CE5BEA76FB727D /* MoteKeyBroadcastExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MoteKeyBroadcastExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC652C88FE82FE2D49CA8C20 /* GeminiWireModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiWireModels.swift; sourceTree = "<group>"; };
@@ -301,6 +303,7 @@
 		DAC9DB94F2DE05CD809548B7 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				C7BEB7BA3149C72243CBB355 /* Assets.xcassets */,
 				767B25ECAE4C11BE470D3B6D /* Info.plist */,
 				1D8A5CE66D1CB0EE7D39CD77 /* MoteKeyHostApp.swift */,
 			);
@@ -366,6 +369,7 @@
 			buildConfigurationList = 8880231EEE37B60EDD3E7FDC /* Build configuration list for PBXNativeTarget "MoteKeyHostApp" */;
 			buildPhases = (
 				9B16E6CF585022941E0612C6 /* Sources */,
+				AC218A6DCF234146C34659D1 /* Resources */,
 				DA4D2835D098ABCFB4F6A00B /* Frameworks */,
 				4C3F691D1379DEF0B38F6710 /* Embed Foundation Extensions */,
 			);
@@ -427,6 +431,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		AC218A6DCF234146C34659D1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5C18EE2A9C85531AC6C777CA /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		79E3290F608F9FBA238E4D84 /* Sources */ = {
