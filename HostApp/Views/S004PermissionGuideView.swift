@@ -140,6 +140,7 @@ struct S004CompleteView: View {
                 .foregroundStyle(.secondary)
 
             Button(HostCopy.S004.viewTutorial) {
+                HostHaptics.success()
                 state.navigationPath.append(HostRoute.tutorial)
             }
             .buttonStyle(.borderedProminent)
@@ -169,6 +170,7 @@ struct S004TutorialView: View {
             }
 
             Button(HostCopy.S004.start) {
+                HostHaptics.success()
                 state.completeSetupAndReturnHome()
             }
             .buttonStyle(.borderedProminent)
@@ -179,6 +181,7 @@ struct S004TutorialView: View {
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button(HostCopy.S004.close) {
+                    HostHaptics.success()
                     state.completeSetupAndReturnHome()
                 }
             }
