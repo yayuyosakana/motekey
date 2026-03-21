@@ -317,11 +317,7 @@ final class AppState: ObservableObject {
             let contextText = try await visionExtractor.extractChatContext(imageData: frameData)
 
             let context = AskUserContext(chatContext: contextText)
-
-            let questions = try await questionGenerator.generateQuestions(context: context)
-            guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
-                throw RuntimeError.invalidQuestionResponse
-            }
+            let questions = try await generateAskUserQuestionsWithFallback(context: context)
 
             if Task.isCancelled || self.flowID != flowID { return }
 
@@ -411,10 +407,7 @@ final class AppState: ObservableObject {
     private func runManualFallbackAskUserFlow(chatContext: String, flowID: UUID) async {
         do {
             let context = AskUserContext(chatContext: chatContext)
-            let questions = try await questionGenerator.generateQuestions(context: context)
-            guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
-                throw RuntimeError.invalidQuestionResponse
-            }
+            let questions = try await generateAskUserQuestionsWithFallback(context: context)
 
             if Task.isCancelled || self.flowID != flowID { return }
 
@@ -432,6 +425,53 @@ final class AppState: ObservableObject {
         } catch {
             handleFlowError(error, flowID: flowID)
         }
+    }
+
+    private func generateAskUserQuestionsWithFallback(context: AskUserContext) async throws -> [AskUserQuestion] {
+        do {
+            let questions = try await questionGenerator.generateQuestions(context: context)
+            guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
+                throw RuntimeError.invalidQuestionResponse
+            }
+            return questions
+        } catch {
+            guard !(error is CancellationError) else {
+                throw error
+            }
+            return defaultAskUserQuestions()
+        }
+    }
+
+    private func defaultAskUserQuestions() -> [AskUserQuestion] {
+        [
+            AskUserQuestion(
+                index: 0,
+                text: "今回の返信で最初に伝える事実はどれですか？",
+                options: [
+                    AskUserOption(label: "今すぐ対応できる", value: "can_handle_now"),
+                    AskUserOption(label: "少し遅れて対応する", value: "handle_with_delay"),
+                    AskUserOption(label: "今日は対応が難しい", value: "cannot_handle_today")
+                ]
+            ),
+            AskUserQuestion(
+                index: 1,
+                text: "対応できる時刻はいつですか？",
+                options: [
+                    AskUserOption(label: "今日中", value: "by_end_of_today"),
+                    AskUserOption(label: "明日", value: "tomorrow"),
+                    AskUserOption(label: "予定を確認して連絡", value: "confirm_then_reply")
+                ]
+            ),
+            AskUserQuestion(
+                index: 2,
+                text: "相手に提案する次の具体アクションは？",
+                options: [
+                    AskUserOption(label: "代替案を提案する", value: "propose_alternative"),
+                    AskUserOption(label: "完了後に再連絡する", value: "follow_up_after_done"),
+                    AskUserOption(label: "必要な条件を確認する", value: "confirm_requirements")
+                ]
+            )
+        ]
     }
 
     private func makeLocalReplyCandidates(

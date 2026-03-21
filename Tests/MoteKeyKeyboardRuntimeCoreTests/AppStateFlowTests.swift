@@ -169,7 +169,7 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertGreaterThan(cancelledCount, 0)
     }
 
-    func testQuestionGenerationFailureTransitionsToFallbackWithoutDefaultQuestions() async {
+    func testQuestionGenerationFailureFallsBackToGenericAskUserQuestions() async {
         let appState = makeAppState(
             visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
             questionGenerator: FailingQuestionGenerator()
@@ -177,12 +177,13 @@ final class AppStateFlowTests: XCTestCase {
 
         appState.handleBottomTabTap(.moteAI)
 
-        await waitUntil("question generation failure should show fallback") {
-            appState.currentScreen == .fallback && !appState.isAIProcessing
+        await waitUntil("question generation failure should still open ask-user") {
+            appState.currentScreen == .askUser && !appState.isAIProcessing
         }
 
-        XCTAssertEqual(appState.fallbackReason, .apiError)
-        XCTAssertEqual(appState.askUserQuestions, [])
+        XCTAssertEqual(appState.fallbackReason, .none)
+        XCTAssertEqual(appState.askUserQuestions.count, 3)
+        XCTAssertTrue(appState.askUserQuestions.allSatisfy { $0.options.count == 3 })
         XCTAssertEqual(appState.askUserAnswers, [:])
         XCTAssertEqual(appState.currentQuestionIndex, 0)
     }
@@ -210,6 +211,31 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertEqual(appState.askUserQuestions.count, 3)
         XCTAssertEqual(appState.askUserAnswers, [:])
         XCTAssertEqual(appState.currentQuestionIndex, 0)
+    }
+
+    func testManualFallbackQuestionGenerationFailureUsesGenericAskUserQuestions() async {
+        let appState = makeAppState(
+            frameLoader: MissingFrameLoader(),
+            questionGenerator: FailingQuestionGenerator(),
+            replyGenerator: ImmediateReplyGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+        await waitUntil("missing frame should show fallback") {
+            appState.currentScreen == .fallback && !appState.isAIProcessing
+        }
+
+        appState.manualFallbackInput = "相手のメッセージ"
+        appState.continueFromManualFallbackInput()
+
+        await waitUntil("manual fallback should still open ask-user") {
+            appState.currentScreen == .askUser && !appState.isAIProcessing
+        }
+
+        XCTAssertEqual(appState.fallbackReason, .none)
+        XCTAssertEqual(appState.askUserQuestions.count, 3)
+        XCTAssertTrue(appState.askUserQuestions.allSatisfy { $0.options.count == 3 })
+        XCTAssertEqual(appState.askUserAnswers, [:])
     }
 
     func testManualFallbackReplyFailureUsesLocalReplyCandidates() async {
