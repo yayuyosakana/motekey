@@ -57,6 +57,7 @@ final class AppState: ObservableObject {
     func handleBottomTabTap(_ tab: BottomTab) {
         switch tab {
         case .moteAI:
+            guard currentScreen != .askUser else { return }
             startAskUserFlow()
         case .keyboard:
             switchToKeyboardAndCancelAskUserIfNeeded()
@@ -69,6 +70,8 @@ final class AppState: ObservableObject {
 
     func selectOption(_ value: String) {
         guard currentQuestionIndex < askUserQuestions.count else { return }
+        let currentQuestion = askUserQuestions[currentQuestionIndex]
+        guard currentQuestion.options.contains(where: { $0.value == value }) else { return }
         askUserAnswers[currentQuestionIndex] = value
 
         if currentQuestionIndex >= askUserQuestions.count - 1 {
@@ -226,6 +229,8 @@ final class AppState: ObservableObject {
 
         if shouldCancelAskUserFlow {
             cancelAskUserFlow()
+            transition(to: .keyboard)
+            return
         }
         displayMode = .chip
         transition(to: generatedCandidates.isEmpty ? .keyboard : .stage)

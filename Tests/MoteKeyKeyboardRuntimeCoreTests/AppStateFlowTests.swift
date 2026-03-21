@@ -48,6 +48,28 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertFalse(appState.isAIProcessing)
     }
 
+    func testKeyboardTabDuringAskUserReturnsToKeyboardEvenWhenOldStageCandidatesExist() async {
+        let appState = makeAppState(
+            visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
+            questionGenerator: ImmediateQuestionGenerator()
+        )
+        let previousCandidates = [ReplyCandidate(text: "old-candidate")]
+        appState.generatedCandidates = previousCandidates
+
+        appState.handleBottomTabTap(.moteAI)
+        await waitUntil("ask-user screen should be visible") {
+            appState.currentScreen == .askUser
+        }
+
+        appState.handleBottomTabTap(.keyboard)
+
+        XCTAssertEqual(appState.currentScreen, .keyboard)
+        XCTAssertEqual(appState.generatedCandidates, previousCandidates)
+        XCTAssertEqual(appState.askUserQuestions, [])
+        XCTAssertEqual(appState.askUserAnswers, [:])
+        XCTAssertEqual(appState.currentQuestionIndex, 0)
+    }
+
     func testKeyboardTabDuringLoadingCancelsInflightAskUserTask() async {
         let probe = CancellationProbe()
         let appState = makeAppState(
@@ -154,6 +176,47 @@ final class AppStateFlowTests: XCTestCase {
         }
 
         XCTAssertEqual(appState.generatedCandidates, expected)
+    }
+
+    func testMoteAITapIsNoOpWhileAskUserScreenIsAlreadyVisible() async {
+        let appState = makeAppState(
+            visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
+            questionGenerator: ImmediateQuestionGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+        await waitUntil("ask-user should be shown") {
+            appState.currentScreen == .askUser
+        }
+
+        let initialQuestions = appState.askUserQuestions
+        let initialIndex = appState.currentQuestionIndex
+
+        appState.handleBottomTabTap(.moteAI)
+
+        XCTAssertEqual(appState.currentScreen, .askUser)
+        XCTAssertEqual(appState.askUserQuestions, initialQuestions)
+        XCTAssertEqual(appState.currentQuestionIndex, initialIndex)
+        XCTAssertFalse(appState.isAIProcessing)
+    }
+
+    func testSelectOptionIgnoresValueOutsideCurrentQuestionOptions() async {
+        let appState = makeAppState(
+            visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
+            questionGenerator: ImmediateQuestionGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+        await waitUntil("ask-user should be shown") {
+            appState.currentScreen == .askUser
+        }
+
+        appState.selectOption("unknown_option")
+
+        XCTAssertEqual(appState.askUserAnswers, [:])
+        XCTAssertEqual(appState.currentQuestionIndex, 0)
+        XCTAssertEqual(appState.currentScreen, .askUser)
+        XCTAssertFalse(appState.isAIProcessing)
     }
 
     func testFullTextTabIsBlockedWhileAskUserOrLoading() {
