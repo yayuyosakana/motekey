@@ -206,7 +206,7 @@ final class AppStateFlowTests: XCTestCase {
 
     func testRateLimitedQuestionGenerationUsesOfflineQuestions() async {
         let context = """
-        {"chat_detected":true,"messages":[{"speaker":"partner","text":"トイレットペーパーなくなりそうだから買ってきてくれない？"}],"last_speaker":"partner","last_message":"トイレットペーパーなくなりそうだから買ってきてくれない？"}
+        {"chat_detected":true,"messages":[{"speaker":"partner","text":"今夜どうする？"}],"last_speaker":"partner","last_message":"今夜どうする？"}
         """
         let appState = makeAppState(
             visionExtractor: ImmediateVisionExtractor(context: context),
@@ -221,7 +221,7 @@ final class AppStateFlowTests: XCTestCase {
 
         XCTAssertEqual(appState.fallbackReason, .none)
         XCTAssertEqual(appState.askUserQuestions.count, 3)
-        XCTAssertEqual(appState.askUserQuestions.first?.text, "いつ買って帰れる？")
+        XCTAssertEqual(appState.askUserQuestions.first?.text, "今回の返信で最初に伝える事実はどれですか？")
         XCTAssertTrue(appState.askUserQuestions.allSatisfy { $0.options.count == 3 })
     }
 
@@ -233,18 +233,51 @@ final class AppStateFlowTests: XCTestCase {
 
         appState.handleBottomTabTap(.moteAI)
 
-        await waitUntil("rate-limited vision extraction should still open ask-user") {
-            appState.currentScreen == .askUser && !appState.isAIProcessing
+        await waitUntil("rate-limited vision extraction should still end at stage") {
+            appState.currentScreen == .stage && !appState.isAIProcessing
         }
 
         XCTAssertEqual(appState.fallbackReason, .none)
         XCTAssertTrue(appState.chatContext.contains("トイレットペーパーなくなりそうだから買ってきてくれない？"))
-        XCTAssertEqual(appState.askUserQuestions.count, 3)
+        XCTAssertEqual(
+            appState.generatedCandidates.map(\.text),
+            [
+                "もちろん、帰りにトイレットペーパー買って帰るね。",
+                "今夜ドラッグストアに寄って、なくなる前に補充しておくよ。",
+                "ほかに足りない日用品があれば一緒に買ってくるから教えて。"
+            ]
+        )
+    }
+
+    func testToiletPaperMessageSkipsAskUserAndShowsFixedStageCandidates() async {
+        let context = """
+        {"chat_detected":true,"messages":[{"speaker":"partner","text":"トイレットペーパーなくなりそうだから買ってきてくれない？"}],"last_speaker":"partner","last_message":"トイレットペーパーなくなりそうだから買ってきてくれない？"}
+        """
+        let appState = makeAppState(
+            visionExtractor: ImmediateVisionExtractor(context: context),
+            questionGenerator: ImmediateQuestionGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+
+        await waitUntil("toilet-paper message should skip ask-user and show stage") {
+            appState.currentScreen == .stage && !appState.isAIProcessing
+        }
+
+        XCTAssertEqual(appState.askUserQuestions, [])
+        XCTAssertEqual(
+            appState.generatedCandidates.map(\.text),
+            [
+                "もちろん、帰りにトイレットペーパー買って帰るね。",
+                "今夜ドラッグストアに寄って、なくなる前に補充しておくよ。",
+                "ほかに足りない日用品があれば一緒に買ってくるから教えて。"
+            ]
+        )
     }
 
     func testRateLimitedReplyGenerationUsesOfflineCandidates() async {
         let context = """
-        {"chat_detected":true,"messages":[{"speaker":"partner","text":"トイレットペーパーなくなりそうだから買ってきてくれない？"}],"last_speaker":"partner","last_message":"トイレットペーパーなくなりそうだから買ってきてくれない？"}
+        {"chat_detected":true,"messages":[{"speaker":"partner","text":"今夜どうする？"}],"last_speaker":"partner","last_message":"今夜どうする？"}
         """
         let appState = makeAppState(
             visionExtractor: ImmediateVisionExtractor(context: context),
@@ -266,7 +299,6 @@ final class AppStateFlowTests: XCTestCase {
         }
 
         XCTAssertGreaterThanOrEqual(appState.generatedCandidates.count, 2)
-        XCTAssertTrue(appState.generatedCandidates.contains { $0.text.contains("トイレットペーパー") })
         XCTAssertFalse(appState.generatedCandidates.contains { $0.text.contains("了解") })
         XCTAssertFalse(appState.generatedCandidates.contains { $0.text.contains("パートナー") })
     }

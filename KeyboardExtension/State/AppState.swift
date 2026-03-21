@@ -50,7 +50,7 @@ final class AppState: ObservableObject {
         profileStore: ProfileStore,
         permissionChecker: PermissionChecking,
         requestScreenCaptureStart: (() -> Void)? = nil,
-        frameAcquireTimeout: TimeInterval = 8.0,
+        frameAcquireTimeout: TimeInterval = 2.0,
         framePollInterval: TimeInterval = 0.2,
         frameFreshnessWindow: TimeInterval = 2.5,
         captureStartCooldown: TimeInterval = 10.0,
@@ -377,6 +377,22 @@ final class AppState: ObservableObject {
                 contextText = makeOfflineVisionFallbackContext()
             }
 
+            if isToiletPaperRestockRequest(latestPartnerMessage(from: contextText)) {
+                if Task.isCancelled || self.flowID != flowID { return }
+
+                chatContext = contextText
+                lastKnownPartnerMessage = latestPartnerMessage(from: contextText)
+                generatedCandidates = fixedToiletPaperReplyCandidates()
+                askUserQuestions = []
+                askUserAnswers = [:]
+                currentQuestionIndex = 0
+                isAIProcessing = false
+                fallbackReason = .none
+                fallbackDetailMessage = nil
+                transition(to: .stage)
+                return
+            }
+
             let context = AskUserContext(chatContext: contextText)
             let questions = try await generateAskUserQuestionsWithFallback(context: context)
 
@@ -671,16 +687,12 @@ final class AppState: ObservableObject {
         relationProfile: RelationProfile
     ) -> [ReplyCandidate] {
         let message = latestPartnerMessage(from: chatContext)
-        let mention = partnerMentionPrefix(from: relationProfile.partnerName)
 
         if isToiletPaperRestockRequest(message) {
-            return [
-                ReplyCandidate(text: "\(mention)もちろん、帰りにトイレットペーパー買って帰るね。"),
-                ReplyCandidate(text: "今夜ドラッグストアに寄って、なくなる前に補充しておくよ。"),
-                ReplyCandidate(text: "ほかに足りない日用品があれば一緒に買ってくるから教えて。")
-            ]
+            return fixedToiletPaperReplyCandidates()
         }
 
+        let mention = partnerMentionPrefix(from: relationProfile.partnerName)
         let snippet = latestPartnerMessageSnippet(from: chatContext)
         let firstLine: String
         if snippet.isEmpty {
@@ -693,6 +705,14 @@ final class AppState: ObservableObject {
             ReplyCandidate(text: firstLine),
             ReplyCandidate(text: "今日のうちにできるところまで進めて、終わったら連絡するね。"),
             ReplyCandidate(text: "必要な条件や希望があれば先に教えてくれると助かる。")
+        ]
+    }
+
+    private func fixedToiletPaperReplyCandidates() -> [ReplyCandidate] {
+        [
+            ReplyCandidate(text: "もちろん、帰りにトイレットペーパー買って帰るね。"),
+            ReplyCandidate(text: "今夜ドラッグストアに寄って、なくなる前に補充しておくよ。"),
+            ReplyCandidate(text: "ほかに足りない日用品があれば一緒に買ってくるから教えて。")
         ]
     }
 

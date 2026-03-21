@@ -173,23 +173,9 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
 
         if firstHTTP.statusCode == 429 {
             Self.logger.notice(
-                "Gemini rate limited, retrying once. callType=\(String(describing: callType), privacy: .public)"
+                "Gemini rate limited, fail-fast for offline fallback. callType=\(String(describing: callType), privacy: .public)"
             )
-            try await Task.sleep(nanoseconds: 2_000_000_000)
-            let (retryData, retryResponse) = try await session.data(for: request)
-            guard let retryHTTP = retryResponse as? HTTPURLResponse else {
-                throw GeminiServiceError.emptyResponse
-            }
-            Self.logger.debug(
-                "Gemini retry status=\(retryHTTP.statusCode, privacy: .public) callType=\(String(describing: callType), privacy: .public)"
-            )
-            guard (200..<300).contains(retryHTTP.statusCode) else {
-                Self.logger.error(
-                    "Gemini retry failed status=\(retryHTTP.statusCode, privacy: .public) body=\(Self.responseBodyPreview(retryData), privacy: .public)"
-                )
-                throw GeminiServiceError.invalidHTTPStatus(retryHTTP.statusCode)
-            }
-            return retryData
+            throw GeminiServiceError.invalidHTTPStatus(429)
         }
 
         Self.logger.error(
