@@ -5,6 +5,8 @@ final class SharedSchemaTests: XCTestCase {
     func testAppGroupConstantsMatchSpec() {
         XCTAssertEqual(AppGroupKeys.suiteName, "group.com.motekey.shared")
         XCTAssertEqual(AppGroupKeys.latestFrameFileName, "latest_frame.jpg")
+        XCTAssertEqual(AppGroupKeys.latestFramePasteboardName, "com.motekey.latest-frame")
+        XCTAssertEqual(AppGroupKeys.latestFramePasteboardType, "com.motekey.latest-frame-jpeg")
         XCTAssertEqual(AppGroupKeys.textStyleProfileData, "textStyleProfileData")
         XCTAssertEqual(AppGroupKeys.relationProfileData, "relationProfileData")
     }

@@ -7,15 +7,15 @@ enum KeyboardRuntimeInstaller {
     static func makeAppState(
         context: any KeyboardRuntimeHostContext
     ) -> AppState? {
-        KeyboardRuntimeFactory.makeAppState(
-            clearMarkedText: {
-                context.clearMarkedText()
+        return KeyboardRuntimeFactory.makeAppState(
+            clearMarkedText: { [weak context] in
+                context?.clearMarkedText()
             },
-            insertText: { text in
-                context.insertText(text)
+            insertText: { [weak context] text in
+                context?.insertText(text)
             },
-            hasFullAccess: {
-                context.hasFullAccess
+            hasFullAccess: { [weak context] in
+                context?.hasFullAccess ?? false
             }
         )
     }
@@ -26,11 +26,11 @@ enum KeyboardRuntimeInstaller {
     ) -> AppState? {
         KeyboardRuntimeFactory.makeAppState(
             clearMarkedText: clearMarkedText,
-            insertText: { text in
-                inputViewController.textDocumentProxy.insertText(text)
+            insertText: { [weak inputViewController] text in
+                inputViewController?.textDocumentProxy.insertText(text)
             },
-            hasFullAccess: {
-                inputViewController.hasFullAccess
+            hasFullAccess: { [weak inputViewController] in
+                inputViewController?.hasFullAccess ?? false
             }
         )
     }

@@ -5,6 +5,8 @@ struct KeyboardRuntimeFactory {
     /// specs で想定している App Group。
     static let appGroupSuiteName = AppGroupKeys.suiteName
     static let latestFrameFileName = AppGroupKeys.latestFrameFileName
+    static let latestFramePasteboardName = AppGroupKeys.latestFramePasteboardName
+    static let latestFramePasteboardType = AppGroupKeys.latestFramePasteboardType
 
     @MainActor
     static func makeAppState(
@@ -12,14 +14,18 @@ struct KeyboardRuntimeFactory {
         insertText: @escaping (String) -> Void,
         hasFullAccess: (() -> Bool)? = nil
     ) -> AppState? {
-        guard let appGroupURL = FileManager.default
+        let appGroupURL = FileManager.default
             .containerURL(forSecurityApplicationGroupIdentifier: appGroupSuiteName)
-        else {
-            return nil
-        }
+            ?? FileManager.default.temporaryDirectory.appendingPathComponent("motekey-fallback", isDirectory: true)
+
+        try? FileManager.default.createDirectory(at: appGroupURL, withIntermediateDirectories: true)
 
         let frameURL = appGroupURL.appendingPathComponent(latestFrameFileName)
-        let frameLoader = FileLatestFrameLoader(frameURL: frameURL)
+        let frameLoader = FileLatestFrameLoader(
+            frameURL: frameURL,
+            pasteboardName: latestFramePasteboardName,
+            pasteboardType: latestFramePasteboardType
+        )
         let profileStore = AppGroupProfileStore(suiteName: appGroupSuiteName)
         let permissionChecker = AppGroupPermissionChecker(
             suiteName: appGroupSuiteName,

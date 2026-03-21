@@ -1,0 +1,812 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		02C4F326433B43FA7D7085BF /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7247158F3290EF376E6091B7 /* AppState.swift */; };
+		131A24937C4AB4390ADA4257 /* GeminiTextHabitAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6019A2A49896E90065B3A5B /* GeminiTextHabitAnalyzer.swift */; };
+		14B6A92AC37E015B1AB64EE6 /* MoteKeyKeyboardExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = AA6B9A8A6994BC85642F731B /* MoteKeyKeyboardExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		23DEE0ED153D9C03BF743E6F /* GeminiWireModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC652C88FE82FE2D49CA8C20 /* GeminiWireModels.swift */; };
+		26DCA6B75147D3CCF78141BF /* HostRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B43F56473FE5DB84C06CD9F9 /* HostRootView.swift */; };
+		2864E128D41A3C7EED27E1CD /* MoteKeyConfig in Frameworks */ = {isa = PBXBuildFile; productRef = FC04B23326C9275B2B134229 /* MoteKeyConfig */; };
+		2C8D00C101C7C971823827F0 /* KeyboardRuntimeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A07EEED8DBDEF81C1790F3CE /* KeyboardRuntimeFactory.swift */; };
+		359336A3D22E86F9057C2F20 /* MoteKeyShared in Frameworks */ = {isa = PBXBuildFile; productRef = 2D40218C9B63C63AC6013974 /* MoteKeyShared */; };
+		3E9730292141E8F4666D8446 /* AskUserLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA60E0711435F9E5A9EE3678 /* AskUserLayerView.swift */; };
+		52FE37386B528BC44C86BE23 /* GeminiPromptFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001DE8F8F2EE27E447BF42FC /* GeminiPromptFactory.swift */; };
+		574746A1651C0E87835CE848 /* S004PermissionGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1232E27569BFD411266C82A4 /* S004PermissionGuideView.swift */; };
+		5FABC3DE462222197EDAECCB /* MoteKeyShared in Frameworks */ = {isa = PBXBuildFile; productRef = 6B188CDC61214F635700A834 /* MoteKeyShared */; };
+		5FACBDD280BBA13DB1986FA8 /* HostCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05398030D640614AC87A7013 /* HostCopy.swift */; };
+		6823B511031F17D616C9C364 /* GeminiKeyboardRuntimeService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B120FFAAC5AFC2A8A10199D /* GeminiKeyboardRuntimeService.swift */; };
+		71DD9E5E386BECD68EBC2688 /* KeyboardRuntimePreview.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93EA651B4D355D9939C9C0AE /* KeyboardRuntimePreview.swift */; };
+		73D3F863A473195080198C5D /* MoteKeyBroadcastExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = DC50736643CE5BEA76FB727D /* MoteKeyBroadcastExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		75A06C367C1378B64A228CFC /* MockKeyboardRuntimeServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = E672EC45EDB5AFEF411E6A8D /* MockKeyboardRuntimeServices.swift */; };
+		7E95893C5250D1BF779D95B7 /* StageLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C852608CF0EDE5E563879E9 /* StageLayerView.swift */; };
+		8698DA76A8E99C0C2E5FA927 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7EABFABF1D89FE123743884 /* KeyboardViewController.swift */; };
+		88E47A3CBC8A457D1CCB9C7D /* RuntimeAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70673C4CD53D4B13C71614A8 /* RuntimeAdapters.swift */; };
+		89FC7121A20AF2E0785B48AC /* KeyboardRuntimeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566E7BE39277241E4BE5462A /* KeyboardRuntimeRootView.swift */; };
+		8B991F310B44A4CA1C85D98A /* BottomActionBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DB18FE7D6AE7C422C81FEE6 /* BottomActionBarView.swift */; };
+		8C2E4DAF1F19416306EBCD16 /* FallbackLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74936D293FBF1191A5A57E4A /* FallbackLayerView.swift */; };
+		8EEB91A2A03302325DD3B7A7 /* KeyboardRuntimeModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10F317BBBCA0FCBCA83CB37C /* KeyboardRuntimeModels.swift */; };
+		A142549AC4B9BF34787D35EE /* LoadingVeilView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD730737AC471A03359C87B /* LoadingVeilView.swift */; };
+		A3DE380CA204B072636D17B9 /* HostHaptics.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFD0884B9EC66DEBF0C0D586 /* HostHaptics.swift */; };
+		A79F10D715D2A0F0D787F7F5 /* PermissionBlockLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 376F2C59EC59D26E4157FF75 /* PermissionBlockLayerView.swift */; };
+		AB575F4C8FC5142D292398EC /* GeminiJSONExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8098B8C397722963116D092 /* GeminiJSONExtractor.swift */; };
+		AF08D2E08676ED42254A0EE1 /* MoteKeyShared in Frameworks */ = {isa = PBXBuildFile; productRef = 47AB38A8576A780CEFF8A36E /* MoteKeyShared */; };
+		B57320ABE7A8203FCAED5BA0 /* KeyboardRuntimeInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7F1D3BC26E85DC4F5A2F2F /* KeyboardRuntimeInstaller.swift */; };
+		B6E1E5A613C17E47B8016AB5 /* HostAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F548042145782B37DE53787 /* HostAppState.swift */; };
+		B89B8CE4246814FD72BD511E /* FullTextLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0640DBDAE90B88625DED7BCF /* FullTextLayerView.swift */; };
+		C290D3C3CFA18A0F7CE674BB /* MonthDayPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D64110A80A33208DAB1DC4 /* MonthDayPicker.swift */; };
+		C903EF962E087C1DD9A2C073 /* CheckmarkAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FFE20D281819CE2A6E0C5E /* CheckmarkAnimationView.swift */; };
+		D1D06B57953FD50997B57FBB /* KeyboardRuntimeHostContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C4AA163645EA19884209E5 /* KeyboardRuntimeHostContext.swift */; };
+		D336A21871EE18E987D25830 /* AppGroupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1732A03B2D73B33CE2F6D425 /* AppGroupStore.swift */; };
+		D559F39217033E8BACC4C731 /* S003RelationFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17A86C22817AF1CE31E70E8 /* S003RelationFlowView.swift */; };
+		DDF8EA72A7F7EA2138FEFEDF /* MoteKeyHostApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D8A5CE66D1CB0EE7D39CD77 /* MoteKeyHostApp.swift */; };
+		E8F690CDDD2E3F10073C2C31 /* S001HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 096E49424FBD8ABE6BEBF1F0 /* S001HomeView.swift */; };
+		EE46C5EF878715C5EC35942D /* S002TextHabitFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B58EB4CF1D06D3A1A0E7E68 /* S002TextHabitFlowView.swift */; };
+		EE83A928D55C44DFAB8191E9 /* HostRoute.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03D81C8633B442D77F17B54D /* HostRoute.swift */; };
+		F3CC0098E9F9E6630C5B6982 /* KeyboardRuntimeDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B91D0177F95008793BEF8BF /* KeyboardRuntimeDependencies.swift */; };
+		F4E2D9DD1A2A7E196331FEAB /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4507901832A89C26BCE1FD6 /* SampleHandler.swift */; };
+		FD9BE0AAEDDC652E0B2881C9 /* MoteKeyConfig in Frameworks */ = {isa = PBXBuildFile; productRef = B378E91399A97997473574F5 /* MoteKeyConfig */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		AACC3DE72EC5D7C53445B13B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 402C5706A56F0A0DCB927F2B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 198A79ED80C16B154A1ED77F;
+			remoteInfo = MoteKeyKeyboardExtension;
+		};
+		F2CD9DF6B9FF272FCBAFD278 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 402C5706A56F0A0DCB927F2B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 69B7D1C955DCF85FBF63C9E7;
+			remoteInfo = MoteKeyBroadcastExtension;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		4C3F691D1379DEF0B38F6710 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				14B6A92AC37E015B1AB64EE6 /* MoteKeyKeyboardExtension.appex in Embed Foundation Extensions */,
+				73D3F863A473195080198C5D /* MoteKeyBroadcastExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		001DE8F8F2EE27E447BF42FC /* GeminiPromptFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiPromptFactory.swift; sourceTree = "<group>"; };
+		0238810FF47AAA9E5921E775 /* MoteKeyHostApp.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MoteKeyHostApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		03D81C8633B442D77F17B54D /* HostRoute.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostRoute.swift; sourceTree = "<group>"; };
+		05398030D640614AC87A7013 /* HostCopy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostCopy.swift; sourceTree = "<group>"; };
+		0640DBDAE90B88625DED7BCF /* FullTextLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FullTextLayerView.swift; sourceTree = "<group>"; };
+		096E49424FBD8ABE6BEBF1F0 /* S001HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S001HomeView.swift; sourceTree = "<group>"; };
+		10F317BBBCA0FCBCA83CB37C /* KeyboardRuntimeModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeModels.swift; sourceTree = "<group>"; };
+		1232E27569BFD411266C82A4 /* S004PermissionGuideView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S004PermissionGuideView.swift; sourceTree = "<group>"; };
+		14D64110A80A33208DAB1DC4 /* MonthDayPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthDayPicker.swift; sourceTree = "<group>"; };
+		1732A03B2D73B33CE2F6D425 /* AppGroupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupStore.swift; sourceTree = "<group>"; };
+		1D8A5CE66D1CB0EE7D39CD77 /* MoteKeyHostApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoteKeyHostApp.swift; sourceTree = "<group>"; };
+		2C852608CF0EDE5E563879E9 /* StageLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StageLayerView.swift; sourceTree = "<group>"; };
+		2F548042145782B37DE53787 /* HostAppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostAppState.swift; sourceTree = "<group>"; };
+		376F2C59EC59D26E4157FF75 /* PermissionBlockLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionBlockLayerView.swift; sourceTree = "<group>"; };
+		4B748C8218BD52FAFEE59AC1 /* MoteKeyBroadcastExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MoteKeyBroadcastExtension.entitlements; sourceTree = "<group>"; };
+		4D7F1D3BC26E85DC4F5A2F2F /* KeyboardRuntimeInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeInstaller.swift; sourceTree = "<group>"; };
+		50FFE20D281819CE2A6E0C5E /* CheckmarkAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckmarkAnimationView.swift; sourceTree = "<group>"; };
+		566E7BE39277241E4BE5462A /* KeyboardRuntimeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeRootView.swift; sourceTree = "<group>"; };
+		59C4AA163645EA19884209E5 /* KeyboardRuntimeHostContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeHostContext.swift; sourceTree = "<group>"; };
+		6B58EB4CF1D06D3A1A0E7E68 /* S002TextHabitFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S002TextHabitFlowView.swift; sourceTree = "<group>"; };
+		70673C4CD53D4B13C71614A8 /* RuntimeAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeAdapters.swift; sourceTree = "<group>"; };
+		7247158F3290EF376E6091B7 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		74936D293FBF1191A5A57E4A /* FallbackLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallbackLayerView.swift; sourceTree = "<group>"; };
+		767B25ECAE4C11BE470D3B6D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		7B120FFAAC5AFC2A8A10199D /* GeminiKeyboardRuntimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiKeyboardRuntimeService.swift; sourceTree = "<group>"; };
+		7DD730737AC471A03359C87B /* LoadingVeilView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingVeilView.swift; sourceTree = "<group>"; };
+		8B91D0177F95008793BEF8BF /* KeyboardRuntimeDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeDependencies.swift; sourceTree = "<group>"; };
+		8DB18FE7D6AE7C422C81FEE6 /* BottomActionBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomActionBarView.swift; sourceTree = "<group>"; };
+		93EA651B4D355D9939C9C0AE /* KeyboardRuntimePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimePreview.swift; sourceTree = "<group>"; };
+		A07EEED8DBDEF81C1790F3CE /* KeyboardRuntimeFactory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeFactory.swift; sourceTree = "<group>"; };
+		A0B93632C1A8FAECC0E79756 /* MoteKeyKeyboardExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MoteKeyKeyboardExtension.entitlements; sourceTree = "<group>"; };
+		A17A86C22817AF1CE31E70E8 /* S003RelationFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S003RelationFlowView.swift; sourceTree = "<group>"; };
+		A6019A2A49896E90065B3A5B /* GeminiTextHabitAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiTextHabitAnalyzer.swift; sourceTree = "<group>"; };
+		AA6B9A8A6994BC85642F731B /* MoteKeyKeyboardExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MoteKeyKeyboardExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B374F611E8E41E90B8418599 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		B389CA7AEB2673E63901EEB8 /* MoteKeyHostApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MoteKeyHostApp.entitlements; sourceTree = "<group>"; };
+		B43F56473FE5DB84C06CD9F9 /* HostRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostRootView.swift; sourceTree = "<group>"; };
+		C4507901832A89C26BCE1FD6 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
+		C9048E140A8C30C920EF2252 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
+		DC50736643CE5BEA76FB727D /* MoteKeyBroadcastExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MoteKeyBroadcastExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		DC652C88FE82FE2D49CA8C20 /* GeminiWireModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiWireModels.swift; sourceTree = "<group>"; };
+		E22B2640E899764FFD6AB6A6 /* GDGoC_demo */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GDGoC_demo; path = .; sourceTree = SOURCE_ROOT; };
+		E3B91439B65CD16E3715DBA7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E672EC45EDB5AFEF411E6A8D /* MockKeyboardRuntimeServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockKeyboardRuntimeServices.swift; sourceTree = "<group>"; };
+		E7EABFABF1D89FE123743884 /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
+		EA60E0711435F9E5A9EE3678 /* AskUserLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskUserLayerView.swift; sourceTree = "<group>"; };
+		F8098B8C397722963116D092 /* GeminiJSONExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiJSONExtractor.swift; sourceTree = "<group>"; };
+		FFD0884B9EC66DEBF0C0D586 /* HostHaptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostHaptics.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		35DF5E909F45077494FA1BC2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2864E128D41A3C7EED27E1CD /* MoteKeyConfig in Frameworks */,
+				5FABC3DE462222197EDAECCB /* MoteKeyShared in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		B6A6F6C3AC843001F9B832DD /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				359336A3D22E86F9057C2F20 /* MoteKeyShared in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DA4D2835D098ABCFB4F6A00B /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FD9BE0AAEDDC652E0B2881C9 /* MoteKeyConfig in Frameworks */,
+				AF08D2E08676ED42254A0EE1 /* MoteKeyShared in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		03FA7C3BE78CC3E865431D3B /* KeyboardExtension */ = {
+			isa = PBXGroup;
+			children = (
+				A0B93632C1A8FAECC0E79756 /* MoteKeyKeyboardExtension.entitlements */,
+				FB64B526594DF0D07B130D9F /* Services */,
+				9DF2A69F0EB5FE601708E478 /* State */,
+				5348FE350D34458390D23E0B /* UI */,
+			);
+			path = KeyboardExtension;
+			sourceTree = "<group>";
+		};
+		120B471F3B24E1C3C92221A7 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				50FFE20D281819CE2A6E0C5E /* CheckmarkAnimationView.swift */,
+				FFD0884B9EC66DEBF0C0D586 /* HostHaptics.swift */,
+				14D64110A80A33208DAB1DC4 /* MonthDayPicker.swift */,
+				096E49424FBD8ABE6BEBF1F0 /* S001HomeView.swift */,
+				6B58EB4CF1D06D3A1A0E7E68 /* S002TextHabitFlowView.swift */,
+				A17A86C22817AF1CE31E70E8 /* S003RelationFlowView.swift */,
+				1232E27569BFD411266C82A4 /* S004PermissionGuideView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		2B45AD73A3F747D52808269A /* Keyboard */ = {
+			isa = PBXGroup;
+			children = (
+				E3B91439B65CD16E3715DBA7 /* Info.plist */,
+				E7EABFABF1D89FE123743884 /* KeyboardViewController.swift */,
+			);
+			path = Keyboard;
+			sourceTree = "<group>";
+		};
+		32FB12D958676C936BDF2E92 /* HostApp */ = {
+			isa = PBXGroup;
+			children = (
+				1732A03B2D73B33CE2F6D425 /* AppGroupStore.swift */,
+				A6019A2A49896E90065B3A5B /* GeminiTextHabitAnalyzer.swift */,
+				2F548042145782B37DE53787 /* HostAppState.swift */,
+				05398030D640614AC87A7013 /* HostCopy.swift */,
+				B43F56473FE5DB84C06CD9F9 /* HostRootView.swift */,
+				03D81C8633B442D77F17B54D /* HostRoute.swift */,
+				B389CA7AEB2673E63901EEB8 /* MoteKeyHostApp.entitlements */,
+				120B471F3B24E1C3C92221A7 /* Views */,
+			);
+			path = HostApp;
+			sourceTree = "<group>";
+		};
+		5348FE350D34458390D23E0B /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				EA60E0711435F9E5A9EE3678 /* AskUserLayerView.swift */,
+				8DB18FE7D6AE7C422C81FEE6 /* BottomActionBarView.swift */,
+				74936D293FBF1191A5A57E4A /* FallbackLayerView.swift */,
+				0640DBDAE90B88625DED7BCF /* FullTextLayerView.swift */,
+				59C4AA163645EA19884209E5 /* KeyboardRuntimeHostContext.swift */,
+				4D7F1D3BC26E85DC4F5A2F2F /* KeyboardRuntimeInstaller.swift */,
+				93EA651B4D355D9939C9C0AE /* KeyboardRuntimePreview.swift */,
+				566E7BE39277241E4BE5462A /* KeyboardRuntimeRootView.swift */,
+				7DD730737AC471A03359C87B /* LoadingVeilView.swift */,
+				376F2C59EC59D26E4157FF75 /* PermissionBlockLayerView.swift */,
+				2C852608CF0EDE5E563879E9 /* StageLayerView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		6BD0F4492E00B61D122E905F = {
+			isa = PBXGroup;
+			children = (
+				DAC9DB94F2DE05CD809548B7 /* App */,
+				99A929D1F8B83D14892D14FE /* BroadcastExtension */,
+				B472DF5900360E7A3818217C /* Config */,
+				32FB12D958676C936BDF2E92 /* HostApp */,
+				2B45AD73A3F747D52808269A /* Keyboard */,
+				03FA7C3BE78CC3E865431D3B /* KeyboardExtension */,
+				C0D353321A94655CAC005D22 /* Packages */,
+				7E3DDC0441BC9BE2FEEFC582 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7E3DDC0441BC9BE2FEEFC582 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DC50736643CE5BEA76FB727D /* MoteKeyBroadcastExtension.appex */,
+				0238810FF47AAA9E5921E775 /* MoteKeyHostApp.app */,
+				AA6B9A8A6994BC85642F731B /* MoteKeyKeyboardExtension.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		99A929D1F8B83D14892D14FE /* BroadcastExtension */ = {
+			isa = PBXGroup;
+			children = (
+				B374F611E8E41E90B8418599 /* Info.plist */,
+				4B748C8218BD52FAFEE59AC1 /* MoteKeyBroadcastExtension.entitlements */,
+				C4507901832A89C26BCE1FD6 /* SampleHandler.swift */,
+			);
+			path = BroadcastExtension;
+			sourceTree = "<group>";
+		};
+		9DF2A69F0EB5FE601708E478 /* State */ = {
+			isa = PBXGroup;
+			children = (
+				7247158F3290EF376E6091B7 /* AppState.swift */,
+				8B91D0177F95008793BEF8BF /* KeyboardRuntimeDependencies.swift */,
+				A07EEED8DBDEF81C1790F3CE /* KeyboardRuntimeFactory.swift */,
+				10F317BBBCA0FCBCA83CB37C /* KeyboardRuntimeModels.swift */,
+				70673C4CD53D4B13C71614A8 /* RuntimeAdapters.swift */,
+			);
+			path = State;
+			sourceTree = "<group>";
+		};
+		B472DF5900360E7A3818217C /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				C9048E140A8C30C920EF2252 /* Secrets.xcconfig */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		C0D353321A94655CAC005D22 /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				E22B2640E899764FFD6AB6A6 /* GDGoC_demo */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+		DAC9DB94F2DE05CD809548B7 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				767B25ECAE4C11BE470D3B6D /* Info.plist */,
+				1D8A5CE66D1CB0EE7D39CD77 /* MoteKeyHostApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		FB64B526594DF0D07B130D9F /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				F8098B8C397722963116D092 /* GeminiJSONExtractor.swift */,
+				7B120FFAAC5AFC2A8A10199D /* GeminiKeyboardRuntimeService.swift */,
+				001DE8F8F2EE27E447BF42FC /* GeminiPromptFactory.swift */,
+				DC652C88FE82FE2D49CA8C20 /* GeminiWireModels.swift */,
+				E672EC45EDB5AFEF411E6A8D /* MockKeyboardRuntimeServices.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		198A79ED80C16B154A1ED77F /* MoteKeyKeyboardExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 821277917A782E9BFB4CF9A4 /* Build configuration list for PBXNativeTarget "MoteKeyKeyboardExtension" */;
+			buildPhases = (
+				79E3290F608F9FBA238E4D84 /* Sources */,
+				35DF5E909F45077494FA1BC2 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MoteKeyKeyboardExtension;
+			packageProductDependencies = (
+				FC04B23326C9275B2B134229 /* MoteKeyConfig */,
+				6B188CDC61214F635700A834 /* MoteKeyShared */,
+			);
+			productName = MoteKeyKeyboardExtension;
+			productReference = AA6B9A8A6994BC85642F731B /* MoteKeyKeyboardExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		69B7D1C955DCF85FBF63C9E7 /* MoteKeyBroadcastExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0463870104F3BF02B69EBF6E /* Build configuration list for PBXNativeTarget "MoteKeyBroadcastExtension" */;
+			buildPhases = (
+				E5F4DC682B067B9444BF957F /* Sources */,
+				B6A6F6C3AC843001F9B832DD /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MoteKeyBroadcastExtension;
+			packageProductDependencies = (
+				2D40218C9B63C63AC6013974 /* MoteKeyShared */,
+			);
+			productName = MoteKeyBroadcastExtension;
+			productReference = DC50736643CE5BEA76FB727D /* MoteKeyBroadcastExtension.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		E15A3DDB6FC0D4B5D9CFCD70 /* MoteKeyHostApp */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8880231EEE37B60EDD3E7FDC /* Build configuration list for PBXNativeTarget "MoteKeyHostApp" */;
+			buildPhases = (
+				9B16E6CF585022941E0612C6 /* Sources */,
+				DA4D2835D098ABCFB4F6A00B /* Frameworks */,
+				4C3F691D1379DEF0B38F6710 /* Embed Foundation Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6A5FE06B359D7CE117AC5E39 /* PBXTargetDependency */,
+				7284AF4E02488E487FE3BEBB /* PBXTargetDependency */,
+			);
+			name = MoteKeyHostApp;
+			packageProductDependencies = (
+				B378E91399A97997473574F5 /* MoteKeyConfig */,
+				47AB38A8576A780CEFF8A36E /* MoteKeyShared */,
+			);
+			productName = MoteKeyHostApp;
+			productReference = 0238810FF47AAA9E5921E775 /* MoteKeyHostApp.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		402C5706A56F0A0DCB927F2B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					198A79ED80C16B154A1ED77F = {
+						ProvisioningStyle = Automatic;
+					};
+					69B7D1C955DCF85FBF63C9E7 = {
+						ProvisioningStyle = Automatic;
+					};
+					E15A3DDB6FC0D4B5D9CFCD70 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = A29FC30E83D7336E95E7AEAE /* Build configuration list for PBXProject "MoteKey" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 6BD0F4492E00B61D122E905F;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				45FB0DD22597C5A4F96B4841 /* XCLocalSwiftPackageReference "." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7E3DDC0441BC9BE2FEEFC582 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				69B7D1C955DCF85FBF63C9E7 /* MoteKeyBroadcastExtension */,
+				E15A3DDB6FC0D4B5D9CFCD70 /* MoteKeyHostApp */,
+				198A79ED80C16B154A1ED77F /* MoteKeyKeyboardExtension */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		79E3290F608F9FBA238E4D84 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				02C4F326433B43FA7D7085BF /* AppState.swift in Sources */,
+				3E9730292141E8F4666D8446 /* AskUserLayerView.swift in Sources */,
+				8B991F310B44A4CA1C85D98A /* BottomActionBarView.swift in Sources */,
+				8C2E4DAF1F19416306EBCD16 /* FallbackLayerView.swift in Sources */,
+				B89B8CE4246814FD72BD511E /* FullTextLayerView.swift in Sources */,
+				AB575F4C8FC5142D292398EC /* GeminiJSONExtractor.swift in Sources */,
+				6823B511031F17D616C9C364 /* GeminiKeyboardRuntimeService.swift in Sources */,
+				52FE37386B528BC44C86BE23 /* GeminiPromptFactory.swift in Sources */,
+				23DEE0ED153D9C03BF743E6F /* GeminiWireModels.swift in Sources */,
+				F3CC0098E9F9E6630C5B6982 /* KeyboardRuntimeDependencies.swift in Sources */,
+				2C8D00C101C7C971823827F0 /* KeyboardRuntimeFactory.swift in Sources */,
+				D1D06B57953FD50997B57FBB /* KeyboardRuntimeHostContext.swift in Sources */,
+				B57320ABE7A8203FCAED5BA0 /* KeyboardRuntimeInstaller.swift in Sources */,
+				8EEB91A2A03302325DD3B7A7 /* KeyboardRuntimeModels.swift in Sources */,
+				71DD9E5E386BECD68EBC2688 /* KeyboardRuntimePreview.swift in Sources */,
+				89FC7121A20AF2E0785B48AC /* KeyboardRuntimeRootView.swift in Sources */,
+				8698DA76A8E99C0C2E5FA927 /* KeyboardViewController.swift in Sources */,
+				A142549AC4B9BF34787D35EE /* LoadingVeilView.swift in Sources */,
+				75A06C367C1378B64A228CFC /* MockKeyboardRuntimeServices.swift in Sources */,
+				A79F10D715D2A0F0D787F7F5 /* PermissionBlockLayerView.swift in Sources */,
+				88E47A3CBC8A457D1CCB9C7D /* RuntimeAdapters.swift in Sources */,
+				7E95893C5250D1BF779D95B7 /* StageLayerView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9B16E6CF585022941E0612C6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				D336A21871EE18E987D25830 /* AppGroupStore.swift in Sources */,
+				C903EF962E087C1DD9A2C073 /* CheckmarkAnimationView.swift in Sources */,
+				131A24937C4AB4390ADA4257 /* GeminiTextHabitAnalyzer.swift in Sources */,
+				B6E1E5A613C17E47B8016AB5 /* HostAppState.swift in Sources */,
+				5FACBDD280BBA13DB1986FA8 /* HostCopy.swift in Sources */,
+				A3DE380CA204B072636D17B9 /* HostHaptics.swift in Sources */,
+				26DCA6B75147D3CCF78141BF /* HostRootView.swift in Sources */,
+				EE83A928D55C44DFAB8191E9 /* HostRoute.swift in Sources */,
+				C290D3C3CFA18A0F7CE674BB /* MonthDayPicker.swift in Sources */,
+				DDF8EA72A7F7EA2138FEFEDF /* MoteKeyHostApp.swift in Sources */,
+				E8F690CDDD2E3F10073C2C31 /* S001HomeView.swift in Sources */,
+				EE46C5EF878715C5EC35942D /* S002TextHabitFlowView.swift in Sources */,
+				D559F39217033E8BACC4C731 /* S003RelationFlowView.swift in Sources */,
+				574746A1651C0E87835CE848 /* S004PermissionGuideView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		E5F4DC682B067B9444BF957F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F4E2D9DD1A2A7E196331FEAB /* SampleHandler.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		6A5FE06B359D7CE117AC5E39 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 198A79ED80C16B154A1ED77F /* MoteKeyKeyboardExtension */;
+			targetProxy = AACC3DE72EC5D7C53445B13B /* PBXContainerItemProxy */;
+		};
+		7284AF4E02488E487FE3BEBB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 69B7D1C955DCF85FBF63C9E7 /* MoteKeyBroadcastExtension */;
+			targetProxy = F2CD9DF6B9FF272FCBAFD278 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1DD1FC745C6DF9A894270E8D /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C9048E140A8C30C920EF2252 /* Secrets.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = BroadcastExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.motekey.app.broadcast;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		41D511F30432E29F700EBFD1 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C9048E140A8C30C920EF2252 /* Secrets.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = BroadcastExtension/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.motekey.app.broadcast;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		56B729AC2E781523EE926D66 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C9048E140A8C30C920EF2252 /* Secrets.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.motekey.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		724D20E0C0EF6E3B0BB9C4C0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C9048E140A8C30C920EF2252 /* Secrets.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = App/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.motekey.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		8100CC09DD1B5A431866E543 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.1;
+			};
+			name = Release;
+		};
+		A3934D03AB98938F773FDA8A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C9048E140A8C30C920EF2252 /* Secrets.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = Keyboard/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.motekey.app.keyboard;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		B87195F61D5E9E87B8ED3712 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.1;
+			};
+			name = Debug;
+		};
+		E693C7732FA6329E41CF750F /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = C9048E140A8C30C920EF2252 /* Secrets.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = Keyboard/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.motekey.app.keyboard;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0463870104F3BF02B69EBF6E /* Build configuration list for PBXNativeTarget "MoteKeyBroadcastExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				41D511F30432E29F700EBFD1 /* Debug */,
+				1DD1FC745C6DF9A894270E8D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		821277917A782E9BFB4CF9A4 /* Build configuration list for PBXNativeTarget "MoteKeyKeyboardExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A3934D03AB98938F773FDA8A /* Debug */,
+				E693C7732FA6329E41CF750F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8880231EEE37B60EDD3E7FDC /* Build configuration list for PBXNativeTarget "MoteKeyHostApp" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				56B729AC2E781523EE926D66 /* Debug */,
+				724D20E0C0EF6E3B0BB9C4C0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A29FC30E83D7336E95E7AEAE /* Build configuration list for PBXProject "MoteKey" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B87195F61D5E9E87B8ED3712 /* Debug */,
+				8100CC09DD1B5A431866E543 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		45FB0DD22597C5A4F96B4841 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		2D40218C9B63C63AC6013974 /* MoteKeyShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoteKeyShared;
+		};
+		47AB38A8576A780CEFF8A36E /* MoteKeyShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoteKeyShared;
+		};
+		6B188CDC61214F635700A834 /* MoteKeyShared */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoteKeyShared;
+		};
+		B378E91399A97997473574F5 /* MoteKeyConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoteKeyConfig;
+		};
+		FC04B23326C9275B2B134229 /* MoteKeyConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = MoteKeyConfig;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 402C5706A56F0A0DCB927F2B /* Project object */;
+}

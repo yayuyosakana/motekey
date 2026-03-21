@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import MoteKeyShared
 
 @MainActor
 final class AppState: ObservableObject {
@@ -29,8 +30,9 @@ final class AppState: ObservableObject {
     private let replyGenerator: ReplyGenerating
     private let profileStore: ProfileStore
     private let permissionChecker: PermissionChecking
-    private weak var composeProxy: ComposeTextProxy?
+    private let composeProxy: ComposeTextProxy?
     private var flowID = UUID()
+    private var isUsingManualContextFallback = false
 
     init(
         frameLoader: LatestFrameLoading,
@@ -87,6 +89,13 @@ final class AppState: ObservableObject {
         tappedChipHistory.append(candidate)
     }
 
+    /// 候補を選択したら、入力欄へ挿入して通常キーボード面へ戻す。
+    func insertCandidateAndReturnToKeyboard(_ candidate: ReplyCandidate) {
+        insertChip(candidate)
+        displayMode = .chip
+        transition(to: .keyboard)
+    }
+
     func showStage() {
         guard !generatedCandidates.isEmpty else {
             transition(to: .keyboard)
@@ -114,7 +123,7 @@ final class AppState: ObservableObject {
         transition(to: .loading)
         let activeFlowID = flowID
         generationTask = Task { [weak self] in
-            await self?.runManualFallbackAskUserFlow(chatContext: trimmed, flowID: activeFlowID)
+            await self?.runManualFallbackDirectReplyFlow(chatContext: trimmed, flowID: activeFlowID)
         }
     }
 
@@ -143,6 +152,7 @@ final class AppState: ObservableObject {
         isAIProcessing = false
         fallbackReason = .none
         permissionIssue = .none
+        isUsingManualContextFallback = false
         manualFallbackInput = ""
         manualFallbackValidationMessage = nil
 
@@ -167,6 +177,7 @@ final class AppState: ObservableObject {
         isAIProcessing = false
         fallbackReason = .none
         permissionIssue = .none
+        isUsingManualContextFallback = false
         chatContext = ""
         askUserQuestions = []
         askUserAnswers = [:]
@@ -294,6 +305,7 @@ final class AppState: ObservableObject {
             if Task.isCancelled || self.flowID != flowID { return }
 
             chatContext = contextText
+            isUsingManualContextFallback = false
             askUserQuestions = questions
             askUserAnswers = [:]
             currentQuestionIndex = 0
@@ -309,16 +321,29 @@ final class AppState: ObservableObject {
         do {
             let textStyleProfile = profileStore.loadTextStyleProfile()
             let relationProfile = profileStore.loadRelationProfile()
-
-            let candidates = try await replyGenerator.generateReplyCandidates(
-                chatContext: chatContext,
-                answers: askUserAnswers,
-                textStyleProfile: textStyleProfile,
-                relationProfile: relationProfile
-            )
-
-            guard !candidates.isEmpty else {
-                throw RuntimeError.invalidReplyResponse
+            let candidates: [ReplyCandidate]
+            do {
+                let generated = try await replyGenerator.generateReplyCandidates(
+                    chatContext: chatContext,
+                    answers: askUserAnswers,
+                    textStyleProfile: textStyleProfile,
+                    relationProfile: relationProfile
+                )
+                let normalized = generated
+                    .map { ReplyCandidate(text: $0.text.trimmingCharacters(in: .whitespacesAndNewlines)) }
+                    .filter { !$0.text.isEmpty }
+                guard !normalized.isEmpty else {
+                    throw RuntimeError.invalidReplyResponse
+                }
+                candidates = normalized
+            } catch {
+                guard !(error is CancellationError), isUsingManualContextFallback else {
+                    throw error
+                }
+                candidates = makeLocalReplyCandidates(
+                    chatContext: chatContext,
+                    relationProfile: relationProfile
+                )
             }
 
             if Task.isCancelled || self.flowID != flowID { return }
@@ -333,29 +358,107 @@ final class AppState: ObservableObject {
         }
     }
 
-    private func runManualFallbackAskUserFlow(chatContext: String, flowID: UUID) async {
+    private func runManualFallbackDirectReplyFlow(chatContext: String, flowID: UUID) async {
         do {
-            let context = AskUserContext(chatContext: chatContext)
-
-            let questions = try await questionGenerator.generateQuestions(context: context)
-            guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
-                throw RuntimeError.invalidQuestionResponse
+            let textStyleProfile = profileStore.loadTextStyleProfile()
+            let relationProfile = profileStore.loadRelationProfile()
+            let defaultAnswers = defaultManualAnswers()
+            let candidates: [ReplyCandidate]
+            do {
+                let generated = try await replyGenerator.generateReplyCandidates(
+                    chatContext: chatContext,
+                    answers: defaultAnswers,
+                    textStyleProfile: textStyleProfile,
+                    relationProfile: relationProfile
+                )
+                let normalized = generated
+                    .map { ReplyCandidate(text: $0.text.trimmingCharacters(in: .whitespacesAndNewlines)) }
+                    .filter { !$0.text.isEmpty }
+                guard !normalized.isEmpty else {
+                    throw RuntimeError.invalidReplyResponse
+                }
+                candidates = normalized
+            } catch {
+                guard !(error is CancellationError) else {
+                    throw error
+                }
+                candidates = makeLocalReplyCandidates(
+                    chatContext: chatContext,
+                    relationProfile: relationProfile
+                )
             }
 
             if Task.isCancelled || self.flowID != flowID { return }
 
             self.chatContext = chatContext
-            askUserQuestions = questions
-            askUserAnswers = [:]
+            isUsingManualContextFallback = true
+            askUserQuestions = []
+            askUserAnswers = defaultAnswers
             currentQuestionIndex = 0
+            generatedCandidates = candidates
+            displayMode = .chip
             manualFallbackInput = ""
             manualFallbackValidationMessage = nil
             isAIProcessing = false
             fallbackReason = .none
-            transition(to: .askUser)
+            transition(to: .stage)
         } catch {
             handleFlowError(error, flowID: flowID)
         }
+    }
+
+    private func defaultManualAnswers() -> [Int: String] {
+        [
+            0: "tone_light",
+            1: "proposal_soft",
+            2: "length_medium"
+        ]
+    }
+
+    private func makeLocalReplyCandidates(
+        chatContext: String,
+        relationProfile: RelationProfile
+    ) -> [ReplyCandidate] {
+        let snippet = latestPartnerMessageSnippet(from: chatContext)
+        let prefix: String
+        switch askUserAnswers[0] {
+        case "tone_warm":
+            prefix = "うん、"
+        case "tone_concise":
+            prefix = "了解。"
+        default:
+            prefix = "了解！"
+        }
+
+        let partner = relationProfile.partnerName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let safePartner = partner.isEmpty ? "相手" : partner
+        let topic = snippet.isEmpty ? "その件" : "「\(snippet)」の件"
+
+        return [
+            ReplyCandidate(text: "\(prefix)\(topic)、帰りに対応しておくね。"),
+            ReplyCandidate(text: "\(safePartner)ありがとう、\(topic)了解！ほかに必要なものある？"),
+            ReplyCandidate(text: "わかった！\(topic)、忘れずにやっておくよ。")
+        ]
+    }
+
+    private func latestPartnerMessageSnippet(from chatContext: String) -> String {
+        let trimmed = chatContext.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return "" }
+
+        if let data = trimmed.data(using: .utf8),
+           let payload = try? JSONDecoder().decode(ChatContextPayload.self, from: data),
+           let lastMessage = payload.last_message {
+            return shortSnippet(from: lastMessage)
+        }
+        return shortSnippet(from: trimmed)
+    }
+
+    private func shortSnippet(from text: String) -> String {
+        let normalized = text
+            .replacingOccurrences(of: "\n", with: " ")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !normalized.isEmpty else { return "" }
+        return String(normalized.prefix(18))
     }
 
 }

@@ -19,4 +19,6 @@ public enum AppGroupKeys {
 
     // Broadcast Extension で上書きする最新1フレーム
     public static let latestFrameFileName = "latest_frame.jpg"
+    public static let latestFramePasteboardName = "com.motekey.latest-frame"
+    public static let latestFramePasteboardType = "com.motekey.latest-frame-jpeg"
 }

@@ -7,6 +7,7 @@ struct S004PermissionGuideView: View {
     @EnvironmentObject private var state: HostAppState
 
     @State private var hasMotekeyEnabled = false
+    @State private var hasManuallyConfirmedKeyboardSetup = false
     @State private var hasAcknowledgedScreenRecording = false
     @State private var showError = false
     @State private var hasReturnedFromSettings = false
@@ -45,6 +46,17 @@ struct S004PermissionGuideView: View {
                 }
                 .buttonStyle(.bordered)
 
+                Toggle(
+                    HostCopy.S004.keyboardManualConfirmation,
+                    isOn: $hasManuallyConfirmedKeyboardSetup
+                )
+
+                if !hasMotekeyEnabled {
+                    Text(HostCopy.S004.keyboardDetectionFailedHint)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
                 Divider()
 
                 VStack(alignment: .leading, spacing: 8) {
@@ -61,14 +73,15 @@ struct S004PermissionGuideView: View {
                 Toggle(HostCopy.S004.recordingAcknowledgement, isOn: $hasAcknowledgedScreenRecording)
 
                 Button(HostCopy.S004.next) {
+                    let keyboardReady = hasMotekeyEnabled || hasManuallyConfirmedKeyboardSetup
                     state.updatePermissionFlags(
-                        fullAccessGranted: hasMotekeyEnabled,
+                        fullAccessGranted: keyboardReady,
                         screenRecordingAcknowledged: hasAcknowledgedScreenRecording
                     )
                     state.navigationPath.append(HostRoute.keyboardComplete)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(!(hasMotekeyEnabled && hasAcknowledgedScreenRecording))
+                .disabled(!((hasMotekeyEnabled || hasManuallyConfirmedKeyboardSetup) && hasAcknowledgedScreenRecording))
 
                 if showError {
                     Text(HostCopy.S004.permissionError)

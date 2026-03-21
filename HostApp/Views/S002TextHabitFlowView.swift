@@ -214,6 +214,7 @@ struct S002TextHabitLoadingView: View {
         }
     }
 
+    @ViewBuilder
     private var loadingOverlay: some View {
         if isAnalyzing || errorMessage != nil {
             ZStack {

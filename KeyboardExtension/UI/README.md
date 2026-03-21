@@ -9,10 +9,10 @@ S-005〜S-007 の keyboard runtime フロー向け SwiftUI 骨組みです。
   - 左に地球儀（入力モード切替）、中央に `mote+AI`、右に `キーボード` / `全文表示` スライダーを表示
   - `キーボード` への切替時は `AppState` 側で ask-user 中断・task cancel
 - `StageLayerView`
-  - チップタップで compose へ挿入
+  - チップタップで compose へ挿入し、通常キーボード面へ戻る
   - チップを `Double(index) * 0.05` の遅延で順次表示
 - `FullTextLayerView`
-  - 一覧タップで compose へ挿入して stage へ戻る
+  - 一覧タップで compose へ挿入し、通常キーボード面へ戻る
   - 高さ不足（< 200pt）時は利用不可メッセージを表示
 - `AskUserLayerView`
   - 3問3択を順次表示

@@ -30,8 +30,7 @@ struct FullTextLayerView: View {
                         VStack(spacing: 8) {
                             ForEach(Array(appState.generatedCandidates.enumerated()), id: \.offset) { index, candidate in
                                 Button(action: {
-                                    appState.insertChip(candidate)
-                                    appState.showStage()
+                                    appState.insertCandidateAndReturnToKeyboard(candidate)
                                 }) {
                                     HStack(alignment: .top, spacing: 8) {
                                         Text("\(index + 1).")

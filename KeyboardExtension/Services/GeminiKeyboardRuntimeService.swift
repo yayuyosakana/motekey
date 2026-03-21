@@ -108,21 +108,17 @@ final class GeminiKeyboardRuntimeService: VisionContextExtracting, AskUserQuesti
         parts: [GeminiGenerateContentRequest.Content.Part]
     ) async throws -> String {
         let endpoint = APIConfig.geminiEndpoint(for: callType)
-        guard var components = URLComponents(string: endpoint) else {
+        guard let url = URL(string: endpoint) else {
             throw GeminiServiceError.invalidURL
         }
 
         let apiKey = APIConfig.geminiAPIKey(for: callType)
-        components.queryItems = [URLQueryItem(name: "key", value: apiKey)]
-
-        guard let url = components.url else {
-            throw GeminiServiceError.invalidURL
-        }
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.timeoutInterval = 10
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(apiKey, forHTTPHeaderField: "x-goog-api-key")
 
         let body = GeminiGenerateContentRequest(
             contents: [.init(parts: parts)],

@@ -8,7 +8,7 @@ struct StageLayerView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 8) {
                 ForEach(Array(appState.generatedCandidates.enumerated()), id: \.offset) { index, candidate in
-                    Button(action: { appState.insertChip(candidate) }) {
+                    Button(action: { appState.insertCandidateAndReturnToKeyboard(candidate) }) {
                         Text(candidate.text)
                             .lineLimit(1)
                             .padding(.horizontal, 12)

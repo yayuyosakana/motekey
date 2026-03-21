@@ -80,7 +80,7 @@ struct GeminiTextHabitAnalyzer {
         }
 
         let endpoint = APIConfig.geminiEndpoint(for: .textHabitAnalysis)
-        guard let url = URL(string: "\(endpoint)?key=\(key)") else {
+        guard let url = URL(string: endpoint) else {
             throw AnalysisError.invalidResponse
         }
 
@@ -88,6 +88,7 @@ struct GeminiTextHabitAnalyzer {
         request.httpMethod = "POST"
         request.timeoutInterval = 10
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue(key, forHTTPHeaderField: "x-goog-api-key")
 
         let prompt = buildPrompt(samples: samples)
         let body = RequestBody(

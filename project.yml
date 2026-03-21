@@ -1,0 +1,101 @@
+name: MoteKey
+
+options:
+  createIntermediateGroups: true
+
+configs:
+  Debug: debug
+  Release: release
+
+packages:
+  MoteKeyBootstrap:
+    path: .
+
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+    IPHONEOS_DEPLOYMENT_TARGET: 17.0
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 0.1.0
+
+targets:
+  MoteKeyHostApp:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    configFiles:
+      Debug: Config/Secrets.xcconfig
+      Release: Config/Secrets.xcconfig
+    sources:
+      - path: App
+      - path: HostApp
+    dependencies:
+      - target: MoteKeyKeyboardExtension
+        embed: true
+      - target: MoteKeyBroadcastExtension
+        embed: true
+      - package: MoteKeyBootstrap
+        product: MoteKeyConfig
+      - package: MoteKeyBootstrap
+        product: MoteKeyShared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.motekey.app
+        INFOPLIST_FILE: App/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+
+  MoteKeyKeyboardExtension:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    configFiles:
+      Debug: Config/Secrets.xcconfig
+      Release: Config/Secrets.xcconfig
+    sources:
+      - path: Keyboard
+      - path: KeyboardExtension
+        excludes:
+          - Services/README.md
+          - State/README.md
+          - UI/README.md
+    dependencies:
+      - package: MoteKeyBootstrap
+        product: MoteKeyConfig
+      - package: MoteKeyBootstrap
+        product: MoteKeyShared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.motekey.app.keyboard
+        INFOPLIST_FILE: Keyboard/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+
+  MoteKeyBroadcastExtension:
+    type: app-extension
+    platform: iOS
+    deploymentTarget: "17.0"
+    configFiles:
+      Debug: Config/Secrets.xcconfig
+      Release: Config/Secrets.xcconfig
+    sources:
+      - path: BroadcastExtension
+    dependencies:
+      - package: MoteKeyBootstrap
+        product: MoteKeyShared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.motekey.app.broadcast
+        INFOPLIST_FILE: BroadcastExtension/Info.plist
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+
+schemes:
+  MoteKeyHostApp:
+    build:
+      targets:
+        MoteKeyHostApp: all
+    run:
+      config: Debug

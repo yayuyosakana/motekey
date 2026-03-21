@@ -20,6 +20,35 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertEqual(appState.tappedChipHistory, [first, second])
     }
 
+    func testInsertCandidateAndReturnToKeyboardMovesScreenToKeyboard() {
+        let composeSpy = ComposeProxySpy()
+        let appState = makeAppState(composeProxy: composeSpy)
+        let candidate = ReplyCandidate(text: "candidate")
+
+        appState.currentScreen = .stage
+        appState.insertCandidateAndReturnToKeyboard(candidate)
+
+        XCTAssertEqual(appState.currentScreen, .keyboard)
+        XCTAssertEqual(appState.displayMode, .chip)
+        XCTAssertEqual(appState.tappedChipHistory, [candidate])
+        XCTAssertEqual(composeSpy.events, [.clearMarkedText, .insertText("candidate")])
+    }
+
+    func testInsertChipWorksWhenComposeProxyIsOnlyRetainedByAppState() {
+        let recorder = ComposeEventRecorder()
+        let appState = makeAppState(
+            composeProxy: ClosureComposeProxy(
+                onClearMarkedText: { recorder.clearCount += 1 },
+                onInsertText: { recorder.insertedTexts.append($0) }
+            )
+        )
+
+        appState.insertChip(ReplyCandidate(text: "only-retained-by-app-state"))
+
+        XCTAssertEqual(recorder.clearCount, 1)
+        XCTAssertEqual(recorder.insertedTexts, ["only-retained-by-app-state"])
+    }
+
     func testKeyboardTabCancelsAskUserAndClearsTemporaryState() async {
         let appState = makeAppState(
             visionExtractor: ImmediateVisionExtractor(context: "{\"chat_detected\":true}"),
@@ -126,10 +155,10 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertEqual(appState.currentQuestionIndex, 0)
     }
 
-    func testManualFallbackQuestionFailureStaysOnFallbackWithoutDefaultQuestions() async {
+    func testManualFallbackContinueDirectlyShowsStageFromGeminiReplyGeneration() async {
         let appState = makeAppState(
             frameLoader: MissingFrameLoader(),
-            questionGenerator: FailingQuestionGenerator()
+            replyGenerator: ImmediateReplyGenerator()
         )
 
         appState.handleBottomTabTap(.moteAI)
@@ -141,13 +170,35 @@ final class AppStateFlowTests: XCTestCase {
         appState.manualFallbackInput = "相手のメッセージ"
         appState.continueFromManualFallbackInput()
 
-        await waitUntil("manual fallback question generation failure should return to fallback") {
+        await waitUntil("manual fallback should directly continue to stage") {
+            appState.currentScreen == .stage && !appState.isAIProcessing
+        }
+        XCTAssertEqual(appState.fallbackReason, .none)
+        XCTAssertEqual(appState.askUserQuestions, [])
+        XCTAssertEqual(appState.askUserAnswers.count, 3)
+        XCTAssertEqual(appState.currentQuestionIndex, 0)
+        XCTAssertFalse(appState.generatedCandidates.isEmpty)
+    }
+
+    func testManualFallbackReplyFailureUsesLocalReplyCandidates() async {
+        let appState = makeAppState(
+            frameLoader: MissingFrameLoader(),
+            replyGenerator: FailingReplyGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+        await waitUntil("missing frame should show fallback") {
             appState.currentScreen == .fallback && !appState.isAIProcessing
         }
-        XCTAssertEqual(appState.fallbackReason, .apiError)
-        XCTAssertEqual(appState.askUserQuestions, [])
-        XCTAssertEqual(appState.askUserAnswers, [:])
-        XCTAssertEqual(appState.currentQuestionIndex, 0)
+
+        appState.manualFallbackInput = "トイレットペーパーなくなりそうだから買ってきてくれない？"
+        appState.continueFromManualFallbackInput()
+
+        await waitUntil("reply generation fallback should end at stage") {
+            appState.currentScreen == .stage && !appState.isAIProcessing
+        }
+
+        XCTAssertGreaterThanOrEqual(appState.generatedCandidates.count, 2)
     }
 
     func testReplyCandidatesKeepGeneratorOrderWithoutReorderUI() async {
@@ -373,6 +424,17 @@ private struct OrderedReplyGenerator: ReplyGenerating {
     }
 }
 
+private struct FailingReplyGenerator: ReplyGenerating {
+    func generateReplyCandidates(
+        chatContext: String,
+        answers: [Int : String],
+        textStyleProfile: TextStyleProfile,
+        relationProfile: RelationProfile
+    ) async throws -> [ReplyCandidate] {
+        throw TestError.forced
+    }
+}
+
 private struct StaticProfileStore: ProfileStore {
     func loadTextStyleProfile() -> TextStyleProfile {
         TextStyleProfile(tone: "neutral", endingStyle: "casual", emojiStyle: "minimal")
@@ -422,5 +484,31 @@ private final class ComposeProxySpy: ComposeTextProxy {
 
     func insertText(_ text: String) {
         events.append(.insertText(text))
+    }
+}
+
+private final class ComposeEventRecorder {
+    var clearCount = 0
+    var insertedTexts: [String] = []
+}
+
+private final class ClosureComposeProxy: ComposeTextProxy {
+    private let onClearMarkedText: () -> Void
+    private let onInsertText: (String) -> Void
+
+    init(
+        onClearMarkedText: @escaping () -> Void,
+        onInsertText: @escaping (String) -> Void
+    ) {
+        self.onClearMarkedText = onClearMarkedText
+        self.onInsertText = onInsertText
+    }
+
+    func clearMarkedText() {
+        onClearMarkedText()
+    }
+
+    func insertText(_ text: String) {
+        onInsertText(text)
     }
 }

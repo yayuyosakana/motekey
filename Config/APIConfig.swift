@@ -195,8 +195,8 @@ public enum APIConfig {
     }
 
     public static let geminiTextEndpoint =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 
     public static let geminiVisionEndpoint =
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 }

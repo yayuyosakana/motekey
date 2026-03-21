@@ -1,5 +1,8 @@
 import Foundation
 import MoteKeyShared
+#if canImport(UIKit)
+import UIKit
+#endif
 
 private enum LegacyProfileKeys {
     static let tone = "textHabit.tone"
@@ -12,9 +15,35 @@ private enum LegacyProfileKeys {
 
 struct FileLatestFrameLoader: LatestFrameLoading {
     let frameURL: URL
+    let pasteboardName: String?
+    let pasteboardType: String?
+
+    init(
+        frameURL: URL,
+        pasteboardName: String? = nil,
+        pasteboardType: String? = nil
+    ) {
+        self.frameURL = frameURL
+        self.pasteboardName = pasteboardName
+        self.pasteboardType = pasteboardType
+    }
 
     func loadLatestFrameData() throws -> Data {
-        try Data(contentsOf: frameURL)
+        if let frameData = try? Data(contentsOf: frameURL), !frameData.isEmpty {
+            return frameData
+        }
+
+#if canImport(UIKit)
+        if let pasteboardName,
+           let pasteboardType,
+           let pasteboard = UIPasteboard(name: .init(pasteboardName), create: false),
+           let pasteboardData = pasteboard.data(forPasteboardType: pasteboardType),
+           !pasteboardData.isEmpty {
+            return pasteboardData
+        }
+#endif
+
+        return try Data(contentsOf: frameURL)
     }
 }
 

@@ -139,6 +139,8 @@ enum HostCopy {
         static let recordingStep4 = "4) ブロードキャストを開始 をタップ"
         static let recordingStep5 = "5) LINEに戻る"
         static let recordingAcknowledgement = "画面収録の開始手順を確認した"
+        static let keyboardManualConfirmation = "モテキーを追加し、フルアクセスを許可した"
+        static let keyboardDetectionFailedHint = "自動検出に失敗する場合は、このチェックをオンにして進んでください。"
         static let permissionError = "キーボードの追加またはフルアクセス許可が完了していないようです。"
         static let reopenSettings = "もう一度設定を開く"
         static let completeHeadline = "準備完了です"
