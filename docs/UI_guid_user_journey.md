@@ -1434,15 +1434,18 @@ MoteKeyRootViewのZStack内でopacity=0の状態がKBD-S-005に相当する。
 
 ### 予測変換バーの扱い
 
-- azooKeyの予測変換バー（通常は画面上部）は、S-007ステージが表示されるときに `isHidden = true` にする。
+- azooKeyの予測変換バー（通常は画面上部）は、S-007ステージ表示中も非表示にしない。
+- ステージバーは予測変換バーのさらに上に重ねる。
 - `UIInputViewController` のサブViewとして制御する（SwiftUI外）。
 
 ```swift
 // KeyboardViewController.swift
-func updatePredictionBarVisibility() {
-    let shouldHide = appState.currentScreen == .stage
-                  || appState.currentScreen == .fullText
-    azooKeyPredictionBar?.isHidden = shouldHide
+func updateStageContainerLayout() {
+    azooKeyPredictionBar?.isHidden = false
+    stageContainerView.isHidden = !(appState.currentScreen == .stage || appState.currentScreen == .fullText)
+
+    // stageContainerView の下端を predictionBar の上端へ固定する
+    // 予測変換バーは維持し、上段にステージバーを追加表示する
 }
 ```
 
@@ -1456,7 +1459,7 @@ func updatePredictionBarVisibility() {
 VStack（全体）
 ├── ヘッダー（高さ36pt）
 │   HStack
-│   ├── Text: "Q{index+1}/{total}"
+│   ├── Text: "Step {index+1}/3"
 │   │   Font: .kbdCaption Color: TextSecondary
 │   └── MoteProgressBar（高さ4pt）← Extensionではキーボード版を使用
 │
@@ -1654,7 +1657,7 @@ func requestAIGeneration() async {
 VStack（全体）
 ├── azooKeyキーボードエリア（ネイティブ、S-005のまま）
 │
-└── ステージオーバーレイ（azooKeyの予測変換バー位置に表示）
+└── ステージオーバーレイ（azooKeyの予測変換バーのさらに上に表示）
     ScrollView（.horizontal、showsIndicators: false）
     LazyHStack(spacing: Spacing.sm)
     └── ForEach(candidates) { StageChipView }
@@ -1873,7 +1876,7 @@ VStack（全体）
 │
 ├── HStack（アクションボタン行）
 │   ├── Button: 「キャンセル」（グレー）
-│   │   → action: `medium` ハプティクス + appState.reset() + transition(.keyboard)
+│   │   → action: `medium` ハプティクス + appState.closeFallback()
 │   └── Spacer()
 └── Button: 「次へ →」（ピンク）
     → 活性条件: inputText.count >= 1
@@ -1979,8 +1982,13 @@ var permissionMessage: String {
 - 背景：`BgGrouped`
 - 上部ボーダー：`Divider()`（1pt、Separator色）
 - ZIndex：100（最前面固定）
+- 下部は `mote+AI` / `キーボード` / `全文表示` の3タブ構成
+- `mote+AI` タブは質問UI表示中（`currentScreen == .askUser`）のみアクティブ表示
+- `キーボード` タブは通常キーボード/ステージ表示時のみアクティブ表示
+- `全文表示` タブは `currentScreen == .fullText` のときのみアクティブ表示
 - `キーボード` タブは常にタップ可能とし、`mote+AI` 質問中の中断導線としても使う
-- `全文` タブは生成済み候補が存在する場合のみ活性とする
+- `全文表示` タブは生成済み候補が存在する場合のみ活性とする
+- 地球儀キーはタブ群の外側に固定配置する
 
 ### レイアウト
 
@@ -1988,36 +1996,38 @@ var permissionMessage: String {
 // BottomActionBarView.swift
 struct BottomActionBarView: View {
     @EnvironmentObject var appState: AppState
-    @EnvironmentObject var heightProvider: KeyboardHeightProvider
-    @Namespace var sliderNamespace
+    let onAdvanceInputMode: () -> Void
 
     static let height: CGFloat = 52
 
     var body: some View {
         VStack(spacing: 0) {
             Divider()
-            HStack(spacing: 0) {
-
-                // ── 要素1: 地球儀アイコン ─────────────────────────
-                Button(action: {
-                    moteKeyContext?.advanceToNextInputMode()
-                }) {
+            HStack(spacing: 12) {
+                Button(action: onAdvanceInputMode) {
                     Image(systemName: "globe")
-                        .font(.system(size: 20))
+                        .font(.system(size: 18, weight: .regular))
                         .foregroundStyle(Color("TextSecondary"))
-                        .frame(width: 52, height: BottomActionBarView.height)
-                        .contentShape(Rectangle())
+                        .frame(width: 36, height: 36)
                 }
+                .buttonStyle(.plain)
 
                 Spacer()
 
-                // ── 要素2: mote+AIボタン ──────────────────────────
-                MotePlusAIButton()
+                HStack(spacing: 0) {
+                    BottomTabButton(title: "mote+AI", tab: .moteAI)
+                    BottomTabButton(title: "キーボード", tab: .keyboard)
+                    BottomTabButton(
+                        title: "全文表示",
+                        tab: .fullText,
+                        disabled: !appState.canOpenFullText
+                    )
+                }
+                .padding(2)
+                .background(Color("BgSecondary"))
+                .clipShape(RoundedRectangle(cornerRadius: Radius.sm))
 
                 Spacer()
-
-                // ── 要素3: 表示モードスライダー ───────────────────
-                DisplayModeSlider(namespace: sliderNamespace)
             }
             .frame(height: BottomActionBarView.height)
             .padding(.horizontal, Spacing.sm)
@@ -2027,130 +2037,51 @@ struct BottomActionBarView: View {
 }
 ```
 
-### MotePlusAIButton
+### BottomTabButton
 
 ```swift
-// MotePlusAIButton.swift
-struct MotePlusAIButton: View {
+// BottomTabButton.swift
+struct BottomTabButton: View {
     @EnvironmentObject var appState: AppState
-    @State private var scale: CGFloat = 1.0
+    let title: String
+    let tab: BottomTab
+    var disabled: Bool = false
 
     var body: some View {
-        Button(action: handleTap) {
-            HStack(spacing: Spacing.xs) {
-                if appState.isAIProcessing {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                        .tint(Color("TextOnAccent"))
-                } else {
-                    Image(systemName: "sparkles")
-                        .font(.system(size: 13, weight: .semibold))
-                }
-                Text("mote+AI")
-                    .font(.kbdButton)
-            }
-            .foregroundStyle(Color("TextOnAccent"))
-            .padding(.horizontal, Spacing.md)
-            .frame(height: 36)
-            .background(
-                appState.isAIProcessing
-                    ? Color("AccentPink").opacity(0.6)
-                    : Color("AccentPink")
-            )
-            .clipShape(RoundedRectangle(cornerRadius: Radius.button))
-        }
-        .disabled(appState.isAIProcessing)
-        .scaleEffect(scale)
-        .buttonStyle(.plain)
-    }
+        let isSelected = isTabActive(tab)
 
-    func handleTap() {
-        // 1. ハプティクス
-        Haptics.light()
-
-        // 2. バウンスアニメーション
-        withAnimation(.buttonBounce) { scale = 0.95 }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            withAnimation(.buttonBounce) { scale = 1.0 }
-        }
-
-        // 3. 権限チェック
-        guard let context = moteKeyContext, context.hasFullAccess else {
-            appState.permissionIssue = .fullAccessDenied
-            appState.transition(to: .permissionBlock)
-            return
-        }
-
-        // 4. AI処理開始
-        appState.isAIProcessing = true
-        appState.generationTask = Task {
-            await startAIFlow()
-        }
-    }
-}
-```
-
-### DisplayModeSlider
-
-```swift
-// DisplayModeSlider.swift
-struct DisplayModeSlider: View {
-    @EnvironmentObject var appState: AppState
-    var namespace: Namespace.ID
-
-    private var isFullTextDisabled: Bool {
-        appState.generatedCandidates.isEmpty
-    }
-
-    var body: some View {
-        HStack(spacing: 0) {
-            sliderTab(label: "キーボード", mode: .chip, isDisabled: false)
-            sliderTab(label: "全文", mode: .fullText, isDisabled: isFullTextDisabled)
-        }
-        .background(Color("BgSecondary"))
-        .clipShape(RoundedRectangle(cornerRadius: Radius.sm))
-        .frame(height: 30)
-        .frame(width: 130)
-    }
-
-    @ViewBuilder
-    func sliderTab(label: String, mode: DisplayMode, isDisabled: Bool) -> some View {
-        let isSelected = appState.displayMode == mode
-
-        ZStack {
-            if isSelected {
-                RoundedRectangle(cornerRadius: Radius.sm - 2)
-                    .fill(Color("BgPrimary"))
-                    .matchedGeometryEffect(id: "indicator", in: namespace)
-                    .padding(2)
-            }
-            Text(label)
-                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(
-                    isSelected ? Color("TextPrimary") : Color("TextSecondary")
+        Button(action: {
+            guard !disabled else { return }
+            Haptics.medium()
+            appState.handleBottomTabTap(tab)
+        }) {
+            Text(title)
+                .font(.kbdButton)
+                .foregroundStyle(isSelected ? Color("TextPrimary") : Color("TextSecondary"))
+                .frame(minWidth: 72, minHeight: 30)
+                .padding(.horizontal, Spacing.xs)
+                .background(
+                    Group {
+                        if isSelected {
+                            RoundedRectangle(cornerRadius: Radius.sm - 2)
+                                .fill(Color("BgPrimary"))
+                        }
+                    }
                 )
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .opacity(isDisabled ? 0.4 : 1.0)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            guard !isDisabled else { return }
-            guard mode != appState.displayMode || appState.currentScreen == .askUser || appState.currentScreen == .loading else { return }
-            Haptics.medium()
-            withAnimation(.sliderMove) {
-                if mode == .chip {
-                    if appState.currentScreen == .askUser || appState.currentScreen == .loading {
-                        appState.cancelAskUserFlow()
-                        appState.currentScreen = .keyboard
-                    } else {
-                        appState.displayMode = .chip
-                        appState.currentScreen = appState.generatedCandidates.isEmpty ? .keyboard : .stage
-                    }
-                } else {
-                    appState.displayMode = .fullText
-                    appState.currentScreen = .fullText
-                }
-            }
+        .buttonStyle(.plain)
+        .disabled(disabled)
+        .opacity(disabled ? 0.4 : 1.0)
+    }
+
+    private func isTabActive(_ tab: BottomTab) -> Bool {
+        switch tab {
+        case .moteAI:
+            return appState.currentScreen == .askUser
+        case .keyboard:
+            return appState.isKeyboardTabActive
+        case .fullText:
+            return appState.isFullTextTabActive
         }
     }
 }
@@ -2227,7 +2158,7 @@ extension AppState {
 | KBD-S-006.5 | KBD-S-005 | `キーボード` タブタップ | medium | screenFade + Task cancel |
 | KBD-S-007 | KBD-S-007 | チップタップ | medium | 画面遷移なし（入力欄へ反映） |
 | KBD-S-008 | KBD-S-007 | カードタップ | medium | screenFade + 入力欄へ反映 |
-| KBD-S-007 ↔ KBD-S-008 | スライダー操作 | medium | sliderMove |
+| KBD-S-007 ↔ KBD-S-008 | `キーボード` / `全文表示` タブ操作 | medium | sliderMove |
 | KBD-S-009 | KBD-S-006 | 「次へ」タップ | light | screenFade |
 | KBD-S-009 | KBD-S-005 | 「キャンセル」タップ | medium | screenFade |
 | KBD-S-010 | KBD-S-005 | 権限確認後（自動） | なし | screenFade |
@@ -2449,12 +2380,8 @@ func safeInsertText(_ text: String, context: any MoteKeyHostContext) {
 
     // 3. ハプティクス
     Haptics.medium()
-
-    // 4. キャッシュクリア
-    appState.reset()
-
-    // 5. KBD-S-005へ戻る
-    appState.transition(to: .keyboard)
+    
+    // 4. 画面状態は維持（ステージに残ったまま複数チップを連続選択可能）
 }
 ```
 
