@@ -225,6 +225,23 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertTrue(appState.askUserQuestions.allSatisfy { $0.options.count == 3 })
     }
 
+    func testRateLimitedVisionExtractionUsesOfflineDemoContext() async {
+        let appState = makeAppState(
+            visionExtractor: RateLimitedVisionExtractor(),
+            questionGenerator: ImmediateQuestionGenerator()
+        )
+
+        appState.handleBottomTabTap(.moteAI)
+
+        await waitUntil("rate-limited vision extraction should still open ask-user") {
+            appState.currentScreen == .askUser && !appState.isAIProcessing
+        }
+
+        XCTAssertEqual(appState.fallbackReason, .none)
+        XCTAssertTrue(appState.chatContext.contains("トイレットペーパーなくなりそうだから買ってきてくれない？"))
+        XCTAssertEqual(appState.askUserQuestions.count, 3)
+    }
+
     func testRateLimitedReplyGenerationUsesOfflineCandidates() async {
         let context = """
         {"chat_detected":true,"messages":[{"speaker":"partner","text":"トイレットペーパーなくなりそうだから買ってきてくれない？"}],"last_speaker":"partner","last_message":"トイレットペーパーなくなりそうだから買ってきてくれない？"}
@@ -546,6 +563,12 @@ private struct FailingQuestionGenerator: AskUserQuestionGenerating {
 private struct MissingAPIKeyQuestionGenerator: AskUserQuestionGenerating {
     func generateQuestions(context: AskUserContext) async throws -> [AskUserQuestion] {
         throw GeminiServiceError.missingAPIKey
+    }
+}
+
+private struct RateLimitedVisionExtractor: VisionContextExtracting {
+    func extractChatContext(imageData: Data) async throws -> String {
+        throw GeminiServiceError.invalidHTTPStatus(429)
     }
 }
 

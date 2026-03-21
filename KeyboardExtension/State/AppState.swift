@@ -40,6 +40,7 @@ final class AppState: ObservableObject {
     private var lastCaptureStartRequestAt = Date.distantPast
     private var flowID = UUID()
     private var isUsingManualContextFallback = false
+    private var lastKnownPartnerMessage = ""
 
     init(
         frameLoader: LatestFrameLoading,
@@ -366,7 +367,15 @@ final class AppState: ObservableObject {
                 transition(to: .fallback)
                 return
             }
-            let contextText = try await visionExtractor.extractChatContext(imageData: frameData)
+            let contextText: String
+            do {
+                contextText = try await visionExtractor.extractChatContext(imageData: frameData)
+            } catch {
+                guard isOfflineAskUserFallbackEligible(error) else {
+                    throw error
+                }
+                contextText = makeOfflineVisionFallbackContext()
+            }
 
             let context = AskUserContext(chatContext: contextText)
             let questions = try await generateAskUserQuestionsWithFallback(context: context)
@@ -374,6 +383,7 @@ final class AppState: ObservableObject {
             if Task.isCancelled || self.flowID != flowID { return }
 
             chatContext = contextText
+            lastKnownPartnerMessage = latestPartnerMessage(from: contextText)
             isUsingManualContextFallback = false
             askUserQuestions = questions
             askUserAnswers = [:]
@@ -471,6 +481,7 @@ final class AppState: ObservableObject {
             if Task.isCancelled || self.flowID != flowID { return }
 
             self.chatContext = chatContext
+            lastKnownPartnerMessage = latestPartnerMessage(from: chatContext)
             isUsingManualContextFallback = true
             askUserQuestions = questions
             askUserAnswers = [:]
@@ -485,6 +496,45 @@ final class AppState: ObservableObject {
         } catch {
             handleFlowError(error, flowID: flowID)
         }
+    }
+
+    private func makeOfflineVisionFallbackContext() -> String {
+        let fallbackMessage = fallbackPartnerMessageForOfflineMode()
+        let payload = ChatContextPayload(
+            chat_detected: true,
+            app: "offline_fallback",
+            messages: [
+                .init(
+                    speaker: .partner,
+                    text: fallbackMessage,
+                    date_label: nil,
+                    time: nil
+                )
+            ],
+            last_speaker: .partner,
+            last_message: fallbackMessage
+        )
+
+        if let data = try? JSONEncoder().encode(payload),
+           let json = String(data: data, encoding: .utf8) {
+            return json
+        }
+        return fallbackMessage
+    }
+
+    private func fallbackPartnerMessageForOfflineMode() -> String {
+        let remembered = lastKnownPartnerMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !remembered.isEmpty {
+            return remembered
+        }
+
+        let manual = manualFallbackInput.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !manual.isEmpty {
+            return manual
+        }
+
+        // 429 時のデモ継続を優先した既定文脈
+        return "トイレットペーパーなくなりそうだから買ってきてくれない？"
     }
 
     private func shouldUseOfflineReplyFallback(for error: Error) -> Bool {
