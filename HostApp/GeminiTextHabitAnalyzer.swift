@@ -56,7 +56,17 @@ struct GeminiTextHabitAnalyzer {
     }
 
     private struct StructuredSummary: Decodable {
-        let summary: String
+        struct ToneProfileSummary: Decodable {
+            let summary: String?
+        }
+
+        let summary: String?
+        let toneProfile: ToneProfileSummary?
+
+        enum CodingKeys: String, CodingKey {
+            case summary
+            case toneProfile = "tone_profile"
+        }
     }
 
     func analyze(samples: [String]) async throws -> TextStyleProfile {
@@ -108,17 +118,25 @@ struct GeminiTextHabitAnalyzer {
 
         let parsed = try JSONDecoder().decode(GenerateContentResponse.self, from: data)
         guard let text = parsed.candidates?
-            .first?
-            .content?
-            .parts?
-            .first?
-            .text?
-            .trimmingCharacters(in: .whitespacesAndNewlines),
-              !text.isEmpty else {
+            .compactMap({ candidate in
+                candidate.content?.parts?
+                    .compactMap(\.text)
+                    .joined(separator: "\n")
+            })
+            .compactMap({ $0.trimmingCharacters(in: .whitespacesAndNewlines) })
+            .first(where: { !$0.isEmpty }) else {
             throw AnalysisError.invalidResponse
         }
 
-        if let jsonString = extractJSONObjectString(from: text),
+        if let profile = Self.parseProfileResponseText(text) {
+            return profile
+        }
+
+        throw AnalysisError.invalidResponse
+    }
+
+    static func parseProfileResponseText(_ text: String) -> TextStyleProfile? {
+        if let jsonString = firstJSONObjectString(in: text),
            let jsonData = jsonString.data(using: .utf8),
            let profile = try? JSONDecoder().decode(TextStyleProfile.self, from: jsonData) {
             return profile
@@ -128,32 +146,82 @@ struct GeminiTextHabitAnalyzer {
             return .fallback(summary: summary)
         }
 
-        throw AnalysisError.invalidResponse
+        return nil
     }
 
-    private func extractJSONObjectString(from text: String) -> String? {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard let start = trimmed.firstIndex(of: "{"),
-              let end = trimmed.lastIndex(of: "}"),
-              start <= end else {
+    static func firstJSONObjectString(in text: String) -> String? {
+        var startIndex: String.Index?
+        var depth = 0
+        var isInsideString = false
+        var isEscaping = false
+
+        for index in text.indices {
+            let char = text[index]
+
+            if isInsideString {
+                if isEscaping {
+                    isEscaping = false
+                    continue
+                }
+                if char == "\\" {
+                    isEscaping = true
+                    continue
+                }
+                if char == "\"" {
+                    isInsideString = false
+                }
+                continue
+            }
+
+            if char == "\"" {
+                isInsideString = true
+                continue
+            }
+
+            if char == "{" {
+                if startIndex == nil {
+                    startIndex = index
+                }
+                depth += 1
+                continue
+            }
+
+            if char == "}" {
+                guard startIndex != nil else { continue }
+                depth -= 1
+                if depth == 0, let start = startIndex {
+                    return String(text[start...index])
+                }
+            }
+        }
+
+        return nil
+    }
+
+    private static func parseSummaryFallback(from text: String) -> String? {
+        if let jsonString = firstJSONObjectString(in: text),
+           let jsonData = jsonString.data(using: .utf8),
+           let structured = try? JSONDecoder().decode(StructuredSummary.self, from: jsonData) {
+            if let toneSummary = structured.toneProfile?.summary?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+               !toneSummary.isEmpty {
+                return toneSummary
+            }
+
+            if let summary = structured.summary?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !summary.isEmpty {
+                return summary
+            }
+
             return nil
         }
-        return String(trimmed[start...end])
-    }
 
-    private func parseSummaryFallback(from text: String) -> String? {
-        if let jsonString = extractJSONObjectString(from: text),
-           let jsonData = jsonString.data(using: .utf8),
-           let structured = try? JSONDecoder().decode(StructuredSummary.self, from: jsonData),
-           !structured.summary.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            return structured.summary
+        if firstJSONObjectString(in: text) != nil {
+            return nil
         }
 
         let plain = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if plain.isEmpty {
-            return nil
-        }
-        return plain
+        return plain.isEmpty ? nil : plain
     }
 
     private func buildPrompt(samples: [String]) -> String {
