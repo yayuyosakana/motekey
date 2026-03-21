@@ -15,12 +15,47 @@ enum GeminiPromptFactory {
         ]
 
         return """
-        以下の入力に対して、返信生成に必要な質問を3問生成してください。
-        ルール:
+        あなたは返信文生成に必要な追加情報を集める質問生成アシスタントです。
+        目的は「返信の不足コンテキスト（事実・予定・ステータス）」のみを3問3択で補完することです。
+
+        絶対ルール:
+        - ユーザーに返信文の作り方やトーンを考えさせる質問は禁止
+        - 客観的な事実・予定・明確な選択結果のみを問う
         - 質問は3件固定
         - 各質問の options は3件固定
         - options[].value は英語スネークケース
-        - 前置き不要、JSONのみ
+        - 同一質問内で options[].value は重複禁止
+        - 前置き・説明文・Markdown禁止。JSONのみを返す
+
+        出力JSONスキーマ:
+        {
+          "questions": [
+            {
+              "question": "質問テキスト",
+              "options": [
+                { "label": "表示文言", "value": "snake_case_value" },
+                { "label": "表示文言", "value": "snake_case_value" },
+                { "label": "表示文言", "value": "snake_case_value" }
+              ]
+            },
+            {
+              "question": "質問テキスト",
+              "options": [
+                { "label": "表示文言", "value": "snake_case_value" },
+                { "label": "表示文言", "value": "snake_case_value" },
+                { "label": "表示文言", "value": "snake_case_value" }
+              ]
+            },
+            {
+              "question": "質問テキスト",
+              "options": [
+                { "label": "表示文言", "value": "snake_case_value" },
+                { "label": "表示文言", "value": "snake_case_value" },
+                { "label": "表示文言", "value": "snake_case_value" }
+              ]
+            }
+          ]
+        }
 
         入力:
         \(jsonString(from: payload))

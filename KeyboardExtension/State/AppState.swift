@@ -139,7 +139,7 @@ final class AppState: ObservableObject {
         transition(to: .loading)
         let activeFlowID = flowID
         generationTask = Task { [weak self] in
-            await self?.runManualFallbackDirectReplyFlow(chatContext: trimmed, flowID: activeFlowID)
+            await self?.runManualFallbackAskUserFlow(chatContext: trimmed, flowID: activeFlowID)
         }
     }
 
@@ -408,61 +408,30 @@ final class AppState: ObservableObject {
         }
     }
 
-    private func runManualFallbackDirectReplyFlow(chatContext: String, flowID: UUID) async {
+    private func runManualFallbackAskUserFlow(chatContext: String, flowID: UUID) async {
         do {
-            let textStyleProfile = profileStore.loadTextStyleProfile()
-            let relationProfile = profileStore.loadRelationProfile()
-            let defaultAnswers = defaultManualAnswers()
-            let candidates: [ReplyCandidate]
-            do {
-                let generated = try await replyGenerator.generateReplyCandidates(
-                    chatContext: chatContext,
-                    answers: defaultAnswers,
-                    textStyleProfile: textStyleProfile,
-                    relationProfile: relationProfile
-                )
-                let normalized = generated
-                    .map { ReplyCandidate(text: $0.text.trimmingCharacters(in: .whitespacesAndNewlines)) }
-                    .filter { !$0.text.isEmpty }
-                guard !normalized.isEmpty else {
-                    throw RuntimeError.invalidReplyResponse
-                }
-                candidates = normalized
-            } catch {
-                guard !(error is CancellationError) else {
-                    throw error
-                }
-                candidates = makeLocalReplyCandidates(
-                    chatContext: chatContext,
-                    relationProfile: relationProfile
-                )
+            let context = AskUserContext(chatContext: chatContext)
+            let questions = try await questionGenerator.generateQuestions(context: context)
+            guard questions.count == 3, questions.allSatisfy({ $0.options.count == 3 }) else {
+                throw RuntimeError.invalidQuestionResponse
             }
 
             if Task.isCancelled || self.flowID != flowID { return }
 
             self.chatContext = chatContext
             isUsingManualContextFallback = true
-            askUserQuestions = []
-            askUserAnswers = defaultAnswers
+            askUserQuestions = questions
+            askUserAnswers = [:]
             currentQuestionIndex = 0
-            generatedCandidates = candidates
             displayMode = .chip
             manualFallbackInput = ""
             manualFallbackValidationMessage = nil
             isAIProcessing = false
             fallbackReason = .none
-            transition(to: .stage)
+            transition(to: .askUser)
         } catch {
             handleFlowError(error, flowID: flowID)
         }
-    }
-
-    private func defaultManualAnswers() -> [Int: String] {
-        [
-            0: "tone_light",
-            1: "proposal_soft",
-            2: "length_medium"
-        ]
     }
 
     private func makeLocalReplyCandidates(

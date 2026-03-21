@@ -187,9 +187,10 @@ final class AppStateFlowTests: XCTestCase {
         XCTAssertEqual(appState.currentQuestionIndex, 0)
     }
 
-    func testManualFallbackContinueDirectlyShowsStageFromGeminiReplyGeneration() async {
+    func testManualFallbackContinueTransitionsToAskUserFlow() async {
         let appState = makeAppState(
             frameLoader: MissingFrameLoader(),
+            questionGenerator: ImmediateQuestionGenerator(),
             replyGenerator: ImmediateReplyGenerator()
         )
 
@@ -202,19 +203,19 @@ final class AppStateFlowTests: XCTestCase {
         appState.manualFallbackInput = "相手のメッセージ"
         appState.continueFromManualFallbackInput()
 
-        await waitUntil("manual fallback should directly continue to stage") {
-            appState.currentScreen == .stage && !appState.isAIProcessing
+        await waitUntil("manual fallback should return to ask-user") {
+            appState.currentScreen == .askUser && !appState.isAIProcessing
         }
         XCTAssertEqual(appState.fallbackReason, .none)
-        XCTAssertEqual(appState.askUserQuestions, [])
-        XCTAssertEqual(appState.askUserAnswers.count, 3)
+        XCTAssertEqual(appState.askUserQuestions.count, 3)
+        XCTAssertEqual(appState.askUserAnswers, [:])
         XCTAssertEqual(appState.currentQuestionIndex, 0)
-        XCTAssertFalse(appState.generatedCandidates.isEmpty)
     }
 
     func testManualFallbackReplyFailureUsesLocalReplyCandidates() async {
         let appState = makeAppState(
             frameLoader: MissingFrameLoader(),
+            questionGenerator: ImmediateQuestionGenerator(),
             replyGenerator: FailingReplyGenerator()
         )
 
@@ -225,6 +226,13 @@ final class AppStateFlowTests: XCTestCase {
 
         appState.manualFallbackInput = "トイレットペーパーなくなりそうだから買ってきてくれない？"
         appState.continueFromManualFallbackInput()
+        await waitUntil("manual fallback should return to ask-user") {
+            appState.currentScreen == .askUser && !appState.isAIProcessing
+        }
+
+        appState.selectOption("a")
+        appState.selectOption("a")
+        appState.selectOption("a")
 
         await waitUntil("reply generation fallback should end at stage") {
             appState.currentScreen == .stage && !appState.isAIProcessing
