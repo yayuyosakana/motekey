@@ -1,13 +1,21 @@
 # モテキー (MoteKey)
 
-> LINE返信のすれ違いを、キーボード上の生成AIで減らす iOS 向けコミュニケーション支援プロダクト。
+> "了解"を、"ありがとう"に変えるキーボード
+
+**GDGoC Japan Hackathon 制作作品 / AI賞・開催地賞・LGTM賞 受賞**
+
+LINE返信のすれ違いを、キーボード上の生成AIで減らす iOS 向けコミュニケーション支援プロダクトです。
 
 ## 基本情報
 
 - プロジェクト名: **モテキー**
+- ハッカソン: **GDGoC Japan Hackathon**
+- 受賞: **AI賞 / 開催地賞 / LGTM賞**
 - ロゴ: 現在準備中（リポジトリ内に正式ロゴ未配置）
 - 一言説明（エレベーターピッチ）:
-  - **「返信で関係を壊さない」ために、相手文脈・関係性・あなたの口調を統合して、送信前の候補文を瞬時に提案するAIキーボード。**
+  - **「了解」で終わらせないために、相手文脈・関係性・あなたの口調を統合して、送信前の候補文を瞬時に提案するAIキーボード。**
+- 発表スライド:
+  - [Canva スライド](https://www.canva.com/design/DAHEhnR71ZQ/OlnjqD3CWWz-IzfFMoSTrA/edit?utm_content=DAHEhnR71ZQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 - デモURL: 準備中
 - デモ動画: 準備中
 - スクリーンショット:
@@ -94,8 +102,8 @@
 ### インストール手順
 
 ```bash
-git clone https://github.com/GDGoC-Japan-Hackathon/pico-banana.git
-cd pico-banana
+git clone https://github.com/yayuyosakana/motekey.git
+cd motekey
 cp Config/Secrets.xcconfig.template Config/Secrets.xcconfig
 ```
 
@@ -131,6 +139,12 @@ make bootstrap-check
 - 実機でのキーボード有効化・Broadcast設定の手順は [`docs/setup-guide.md`](docs/setup-guide.md) を参照してください。
 
 ## ハッカソン固有（審査員向け）
+
+### 受賞結果
+
+- GDGoC Japan Hackathon にて **AI賞 / 開催地賞 / LGTM賞** を受賞
+- 発表スライド:
+  - [Canva スライド](https://www.canva.com/design/DAHEhnR71ZQ/OlnjqD3CWWz-IzfFMoSTrA/edit?utm_content=DAHEhnR71ZQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton)
 
 ### ハッカソンテーマとの関連性
 
