@@ -82,7 +82,7 @@ LINE返信のすれ違いを、キーボード上の生成AIで減らす iOS 向
 
 - Gemini API（テキストハビット抽出 / 質問生成 / 返信生成）
 - Gemini Vision API（チャット文脈抽出）
-- azooKey（OSSベース実装）
+- azooKey `AzooKeyKanaKanjiConverter`（フリックキーボードのかな漢字変換エンジン）
 
 ### インフラ構成（簡易）
 
@@ -133,9 +133,20 @@ make bootstrap-check
 ./scripts/bootstrap_check.sh
 ```
 
+アプリ本体（Host App + Keyboard Extension + Broadcast Extension）のビルド:
+
+```bash
+xcodegen generate          # project.yml から MoteKey.xcodeproj を生成
+open MoteKey.xcodeproj      # Xcode で MoteKeyHostApp スキームを実行
+```
+
+> Xcode 26 系では iOS プラットフォームが別ダウンロードのことがあります。未導入なら
+> `xcodebuild -downloadPlatform iOS` で取得してください。
+
 補足:
 
-- 現在のリポジトリは、仕様整備 + コアモジュール検証（SPMテスト）中心です。
+- キーボード本体は **あかさたなフリック入力** を自作実装（`KeyboardExtension/UI/Flick/`）。かな漢字変換は **azooKey の `AzooKeyKanaKanjiConverter`** に委譲しています（[`docs/azookey-integration.md`](docs/azookey-integration.md)）。
+- 要件と実装の対応は [`docs/requirements-traceability.md`](docs/requirements-traceability.md) を参照。
 - 実機でのキーボード有効化・Broadcast設定の手順は [`docs/setup-guide.md`](docs/setup-guide.md) を参照してください。
 
 ## ハッカソン固有（審査員向け）

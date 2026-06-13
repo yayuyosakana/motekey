@@ -10,6 +10,9 @@ configs:
 packages:
   MoteKeyBootstrap:
     path: .
+  AzooKeyKanaKanjiConverter:
+    url: https://github.com/azooKey/AzooKeyKanaKanjiConverter
+    revision: fb11f1da84af322adec8a1b45888dc4a6d87e328
 
 settings:
   base:
@@ -65,6 +68,8 @@ targets:
         product: MoteKeyConfig
       - package: MoteKeyBootstrap
         product: MoteKeyShared
+      - package: AzooKeyKanaKanjiConverter
+        product: KanaKanjiConverterModuleWithDefaultDictionary
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.motekey.app.keyboard

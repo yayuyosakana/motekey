@@ -1,5 +1,15 @@
 import SwiftUI
 
+/// キーボード拡張のルート。要件 S-005〜S-007 の重なり順を表現する。
+///
+/// 通常時（キーボード/ステージタブ）:
+///   ┌ ステージバー（AI候補チップ・候補がある時だけ）
+///   ├ 予測変換バー（キーボード本体に内蔵）
+///   └ キーボード本体（フリック）
+/// に下部タブ（mote+AI / キーボード / 全文表示）が付く。
+///
+/// mote+AI 質問・全文表示・ローディング・フォールバック・権限ブロックは、
+/// キーボードを覆う全面オーバーレイとして表示する。
 struct KeyboardRuntimeRootView: View {
     @ObservedObject var appState: AppState
     private let baseKeyboardView: AnyView
@@ -10,7 +20,9 @@ struct KeyboardRuntimeRootView: View {
         onAdvanceInputMode: @escaping () -> Void = {}
     ) {
         self.appState = appState
-        self.baseKeyboardView = AnyView(DefaultKeyboardBodyPlaceholderView())
+        self.baseKeyboardView = AnyView(
+            JapaneseKeyboardView(onInsert: { _ in }, onDeleteBackward: {})
+        )
         self.onAdvanceInputMode = onAdvanceInputMode
     }
 
@@ -26,38 +38,16 @@ struct KeyboardRuntimeRootView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ZStack(alignment: .bottom) {
-                baseKeyboardView
-
-                if appState.currentScreen == .stage {
-                    StageLayerView(appState: appState)
-                        .transition(.opacity)
+            ZStack {
+                VStack(spacing: 0) {
+                    if showStageBar {
+                        StageLayerView(appState: appState)
+                            .transition(.opacity)
+                    }
+                    baseKeyboardView
                 }
 
-                if appState.currentScreen == .fullText {
-                    FullTextLayerView(appState: appState)
-                        .transition(.opacity)
-                }
-
-                if appState.currentScreen == .askUser {
-                    AskUserLayerView(appState: appState)
-                        .transition(.opacity)
-                }
-
-                if appState.currentScreen == .loading {
-                    LoadingVeilView()
-                        .transition(.opacity)
-                }
-
-                if appState.currentScreen == .fallback {
-                    FallbackLayerView(appState: appState)
-                        .transition(.opacity)
-                }
-
-                if appState.currentScreen == .permissionBlock {
-                    PermissionBlockLayerView(appState: appState)
-                        .transition(.opacity)
-                }
+                overlayLayer
             }
 
             BottomActionBarView(
@@ -67,18 +57,36 @@ struct KeyboardRuntimeRootView: View {
         }
         .animation(.easeInOut(duration: 0.2), value: appState.currentScreen)
     }
-}
 
-private struct DefaultKeyboardBodyPlaceholderView: View {
-    var body: some View {
-        VStack(spacing: 8) {
-            Text("Keyboard Body")
-                .font(.headline)
-            Text("実機では azooKey の通常キーボードを配置")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+    /// ステージバーは「キーボード/ステージタブ」かつ候補がある時だけ重ねる。
+    private var showStageBar: Bool {
+        appState.isKeyboardTabActive && !appState.generatedCandidates.isEmpty
+    }
+
+    @ViewBuilder
+    private var overlayLayer: some View {
+        switch appState.currentScreen {
+        case .askUser:
+            fullCover { AskUserLayerView(appState: appState) }
+        case .fullText:
+            fullCover { FullTextLayerView(appState: appState) }
+        case .fallback:
+            fullCover { FallbackLayerView(appState: appState) }
+        case .permissionBlock:
+            fullCover { PermissionBlockLayerView(appState: appState) }
+        case .loading:
+            LoadingVeilView()
+                .transition(.opacity)
+        case .keyboard, .stage:
+            EmptyView()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(white: 0.96))
+    }
+
+    @ViewBuilder
+    private func fullCover<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .background(Color(white: 0.95))
+            .transition(.opacity)
     }
 }

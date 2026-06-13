@@ -15,6 +15,7 @@
 		2864E128D41A3C7EED27E1CD /* MoteKeyConfig in Frameworks */ = {isa = PBXBuildFile; productRef = FC04B23326C9275B2B134229 /* MoteKeyConfig */; };
 		2C8D00C101C7C971823827F0 /* KeyboardRuntimeFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = A07EEED8DBDEF81C1790F3CE /* KeyboardRuntimeFactory.swift */; };
 		359336A3D22E86F9057C2F20 /* MoteKeyShared in Frameworks */ = {isa = PBXBuildFile; productRef = 2D40218C9B63C63AC6013974 /* MoteKeyShared */; };
+		3DDF503BD4A61E31E028E07D /* AzooKeyConversionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DFA7A121958F29257FC1D642 /* AzooKeyConversionEngine.swift */; };
 		3E9730292141E8F4666D8446 /* AskUserLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA60E0711435F9E5A9EE3678 /* AskUserLayerView.swift */; };
 		404CD1971D4F4AC34E02D0EE /* ScreenCaptureStarter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3628AA8A121A407A4BCC2538 /* ScreenCaptureStarter.swift */; };
 		52FE37386B528BC44C86BE23 /* GeminiPromptFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001DE8F8F2EE27E447BF42FC /* GeminiPromptFactory.swift */; };
@@ -28,6 +29,7 @@
 		75A06C367C1378B64A228CFC /* MockKeyboardRuntimeServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = E672EC45EDB5AFEF411E6A8D /* MockKeyboardRuntimeServices.swift */; };
 		7E95893C5250D1BF779D95B7 /* StageLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C852608CF0EDE5E563879E9 /* StageLayerView.swift */; };
 		8698DA76A8E99C0C2E5FA927 /* KeyboardViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7EABFABF1D89FE123743884 /* KeyboardViewController.swift */; };
+		88E3CC01427F9F578A3F3B71 /* JapaneseKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6140A2E47E05CA069B810542 /* JapaneseKeyboardView.swift */; };
 		88E47A3CBC8A457D1CCB9C7D /* RuntimeAdapters.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70673C4CD53D4B13C71614A8 /* RuntimeAdapters.swift */; };
 		89FC7121A20AF2E0785B48AC /* KeyboardRuntimeRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 566E7BE39277241E4BE5462A /* KeyboardRuntimeRootView.swift */; };
 		8B991F310B44A4CA1C85D98A /* BottomActionBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DB18FE7D6AE7C422C81FEE6 /* BottomActionBarView.swift */; };
@@ -39,10 +41,13 @@
 		AB575F4C8FC5142D292398EC /* GeminiJSONExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = F8098B8C397722963116D092 /* GeminiJSONExtractor.swift */; };
 		AF08D2E08676ED42254A0EE1 /* MoteKeyShared in Frameworks */ = {isa = PBXBuildFile; productRef = 47AB38A8576A780CEFF8A36E /* MoteKeyShared */; };
 		B57320ABE7A8203FCAED5BA0 /* KeyboardRuntimeInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4D7F1D3BC26E85DC4F5A2F2F /* KeyboardRuntimeInstaller.swift */; };
+		B58995679FEFD7C1B5AE2E84 /* KanaKanjiConverterModuleWithDefaultDictionary in Frameworks */ = {isa = PBXBuildFile; productRef = 74F071925816EB662923BE77 /* KanaKanjiConverterModuleWithDefaultDictionary */; };
 		B6E1E5A613C17E47B8016AB5 /* HostAppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F548042145782B37DE53787 /* HostAppState.swift */; };
 		B89B8CE4246814FD72BD511E /* FullTextLayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0640DBDAE90B88625DED7BCF /* FullTextLayerView.swift */; };
+		C28BF1B9443C0A35FAD1CE6B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = FF9C62285BE05E076141D5F9 /* Assets.xcassets */; };
 		C290D3C3CFA18A0F7CE674BB /* MonthDayPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14D64110A80A33208DAB1DC4 /* MonthDayPicker.swift */; };
 		C903EF962E087C1DD9A2C073 /* CheckmarkAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50FFE20D281819CE2A6E0C5E /* CheckmarkAnimationView.swift */; };
+		CC16AF4FC0ADD752362A4A27 /* JapaneseInputCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = B429726E1C2D407CF3C8E7C3 /* JapaneseInputCore.swift */; };
 		D1D06B57953FD50997B57FBB /* KeyboardRuntimeHostContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = 59C4AA163645EA19884209E5 /* KeyboardRuntimeHostContext.swift */; };
 		D336A21871EE18E987D25830 /* AppGroupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1732A03B2D73B33CE2F6D425 /* AppGroupStore.swift */; };
 		D559F39217033E8BACC4C731 /* S003RelationFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A17A86C22817AF1CE31E70E8 /* S003RelationFlowView.swift */; };
@@ -108,6 +113,7 @@
 		50FFE20D281819CE2A6E0C5E /* CheckmarkAnimationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CheckmarkAnimationView.swift; sourceTree = "<group>"; };
 		566E7BE39277241E4BE5462A /* KeyboardRuntimeRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeRootView.swift; sourceTree = "<group>"; };
 		59C4AA163645EA19884209E5 /* KeyboardRuntimeHostContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeHostContext.swift; sourceTree = "<group>"; };
+		6140A2E47E05CA069B810542 /* JapaneseKeyboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseKeyboardView.swift; sourceTree = "<group>"; };
 		6B58EB4CF1D06D3A1A0E7E68 /* S002TextHabitFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = S002TextHabitFlowView.swift; sourceTree = "<group>"; };
 		70673C4CD53D4B13C71614A8 /* RuntimeAdapters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RuntimeAdapters.swift; sourceTree = "<group>"; };
 		7247158F3290EF376E6091B7 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
@@ -125,18 +131,21 @@
 		AA6B9A8A6994BC85642F731B /* MoteKeyKeyboardExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MoteKeyKeyboardExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B374F611E8E41E90B8418599 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		B389CA7AEB2673E63901EEB8 /* MoteKeyHostApp.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MoteKeyHostApp.entitlements; sourceTree = "<group>"; };
+		B429726E1C2D407CF3C8E7C3 /* JapaneseInputCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JapaneseInputCore.swift; sourceTree = "<group>"; };
 		B43F56473FE5DB84C06CD9F9 /* HostRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostRootView.swift; sourceTree = "<group>"; };
 		C4507901832A89C26BCE1FD6 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
 		C7BEB7BA3149C72243CBB355 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		C9048E140A8C30C920EF2252 /* Secrets.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Secrets.xcconfig; sourceTree = "<group>"; };
 		DC50736643CE5BEA76FB727D /* MoteKeyBroadcastExtension.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MoteKeyBroadcastExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		DC652C88FE82FE2D49CA8C20 /* GeminiWireModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiWireModels.swift; sourceTree = "<group>"; };
+		DFA7A121958F29257FC1D642 /* AzooKeyConversionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AzooKeyConversionEngine.swift; sourceTree = "<group>"; };
 		E22B2640E899764FFD6AB6A6 /* GDGoC_demo */ = {isa = PBXFileReference; lastKnownFileType = folder; name = GDGoC_demo; path = .; sourceTree = SOURCE_ROOT; };
 		E3B91439B65CD16E3715DBA7 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		E672EC45EDB5AFEF411E6A8D /* MockKeyboardRuntimeServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockKeyboardRuntimeServices.swift; sourceTree = "<group>"; };
 		E7EABFABF1D89FE123743884 /* KeyboardViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardViewController.swift; sourceTree = "<group>"; };
 		EA60E0711435F9E5A9EE3678 /* AskUserLayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskUserLayerView.swift; sourceTree = "<group>"; };
 		F8098B8C397722963116D092 /* GeminiJSONExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiJSONExtractor.swift; sourceTree = "<group>"; };
+		FF9C62285BE05E076141D5F9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		FFD0884B9EC66DEBF0C0D586 /* HostHaptics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HostHaptics.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -147,6 +156,7 @@
 			files = (
 				2864E128D41A3C7EED27E1CD /* MoteKeyConfig in Frameworks */,
 				5FABC3DE462222197EDAECCB /* MoteKeyShared in Frameworks */,
+				B58995679FEFD7C1B5AE2E84 /* KanaKanjiConverterModuleWithDefaultDictionary in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,6 +180,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		024CE487067455E2B60A5D4A /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				FF9C62285BE05E076141D5F9 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
 		03FA7C3BE78CC3E865431D3B /* KeyboardExtension */ = {
 			isa = PBXGroup;
 			children = (
@@ -214,6 +232,7 @@
 				B43F56473FE5DB84C06CD9F9 /* HostRootView.swift */,
 				03D81C8633B442D77F17B54D /* HostRoute.swift */,
 				B389CA7AEB2673E63901EEB8 /* MoteKeyHostApp.entitlements */,
+				024CE487067455E2B60A5D4A /* Resources */,
 				120B471F3B24E1C3C92221A7 /* Views */,
 			);
 			path = HostApp;
@@ -234,6 +253,7 @@
 				376F2C59EC59D26E4157FF75 /* PermissionBlockLayerView.swift */,
 				3628AA8A121A407A4BCC2538 /* ScreenCaptureStarter.swift */,
 				2C852608CF0EDE5E563879E9 /* StageLayerView.swift */,
+				789EFC313694C5280AC9E51B /* Flick */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -250,6 +270,16 @@
 				C0D353321A94655CAC005D22 /* Packages */,
 				7E3DDC0441BC9BE2FEEFC582 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		789EFC313694C5280AC9E51B /* Flick */ = {
+			isa = PBXGroup;
+			children = (
+				DFA7A121958F29257FC1D642 /* AzooKeyConversionEngine.swift */,
+				B429726E1C2D407CF3C8E7C3 /* JapaneseInputCore.swift */,
+				6140A2E47E05CA069B810542 /* JapaneseKeyboardView.swift */,
+			);
+			path = Flick;
 			sourceTree = "<group>";
 		};
 		7E3DDC0441BC9BE2FEEFC582 /* Products */ = {
@@ -340,6 +370,7 @@
 			packageProductDependencies = (
 				FC04B23326C9275B2B134229 /* MoteKeyConfig */,
 				6B188CDC61214F635700A834 /* MoteKeyShared */,
+				74F071925816EB662923BE77 /* KanaKanjiConverterModuleWithDefaultDictionary */,
 			);
 			productName = MoteKeyKeyboardExtension;
 			productReference = AA6B9A8A6994BC85642F731B /* MoteKeyKeyboardExtension.appex */;
@@ -421,6 +452,7 @@
 			mainGroup = 6BD0F4492E00B61D122E905F;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				8BA460216EB715E4AF8ADAD2 /* XCRemoteSwiftPackageReference "AzooKeyKanaKanjiConverter" */,
 				45FB0DD22597C5A4F96B4841 /* XCLocalSwiftPackageReference "." */,
 			);
 			preferredProjectObjectVersion = 77;
@@ -441,6 +473,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5C18EE2A9C85531AC6C777CA /* Assets.xcassets in Resources */,
+				C28BF1B9443C0A35FAD1CE6B /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -453,6 +486,7 @@
 			files = (
 				02C4F326433B43FA7D7085BF /* AppState.swift in Sources */,
 				3E9730292141E8F4666D8446 /* AskUserLayerView.swift in Sources */,
+				3DDF503BD4A61E31E028E07D /* AzooKeyConversionEngine.swift in Sources */,
 				8B991F310B44A4CA1C85D98A /* BottomActionBarView.swift in Sources */,
 				8C2E4DAF1F19416306EBCD16 /* FallbackLayerView.swift in Sources */,
 				B89B8CE4246814FD72BD511E /* FullTextLayerView.swift in Sources */,
@@ -460,6 +494,8 @@
 				6823B511031F17D616C9C364 /* GeminiKeyboardRuntimeService.swift in Sources */,
 				52FE37386B528BC44C86BE23 /* GeminiPromptFactory.swift in Sources */,
 				23DEE0ED153D9C03BF743E6F /* GeminiWireModels.swift in Sources */,
+				CC16AF4FC0ADD752362A4A27 /* JapaneseInputCore.swift in Sources */,
+				88E3CC01427F9F578A3F3B71 /* JapaneseKeyboardView.swift in Sources */,
 				F3CC0098E9F9E6630C5B6982 /* KeyboardRuntimeDependencies.swift in Sources */,
 				2C8D00C101C7C971823827F0 /* KeyboardRuntimeFactory.swift in Sources */,
 				D1D06B57953FD50997B57FBB /* KeyboardRuntimeHostContext.swift in Sources */,
@@ -809,6 +845,17 @@
 		};
 /* End XCLocalSwiftPackageReference section */
 
+/* Begin XCRemoteSwiftPackageReference section */
+		8BA460216EB715E4AF8ADAD2 /* XCRemoteSwiftPackageReference "AzooKeyKanaKanjiConverter" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/azooKey/AzooKeyKanaKanjiConverter";
+			requirement = {
+				kind = revision;
+				revision = fb11f1da84af322adec8a1b45888dc4a6d87e328;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
 		2D40218C9B63C63AC6013974 /* MoteKeyShared */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -821,6 +868,11 @@
 		6B188CDC61214F635700A834 /* MoteKeyShared */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = MoteKeyShared;
+		};
+		74F071925816EB662923BE77 /* KanaKanjiConverterModuleWithDefaultDictionary */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8BA460216EB715E4AF8ADAD2 /* XCRemoteSwiftPackageReference "AzooKeyKanaKanjiConverter" */;
+			productName = KanaKanjiConverterModuleWithDefaultDictionary;
 		};
 		B378E91399A97997473574F5 /* MoteKeyConfig */ = {
 			isa = XCSwiftPackageProductDependency;

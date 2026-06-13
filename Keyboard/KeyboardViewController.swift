@@ -18,13 +18,16 @@ final class KeyboardViewController: UIInputViewController {
         guard hostingController == nil else { return }
         guard let appState = KeyboardRuntimeInstaller.makeAppState(in: self) else { return }
 
-        let hosting = KeyboardRuntimeInstaller.embed(into: self, appState: appState) {
-            KeyboardBasePlaceholderView(
-                onInsertText: { [weak self] text in
+        let hosting = KeyboardRuntimeInstaller.embed(into: self, appState: appState) { [weak self] in
+            JapaneseKeyboardView(
+                onInsert: { [weak self] text in
                     self?.textDocumentProxy.insertText(text)
                 },
                 onDeleteBackward: { [weak self] in
                     self?.textDocumentProxy.deleteBackward()
+                },
+                onAdvanceInputMode: { [weak self] in
+                    self?.advanceToNextInputMode()
                 }
             )
         }
@@ -76,77 +79,12 @@ final class KeyboardViewController: UIInputViewController {
 
     private func configureKeyboardHeightIfNeeded() {
         guard keyboardHeightConstraint == nil else { return }
-        let height: CGFloat = 300
+        // ステージバー + 予測変換バー + フリックキー + 下部タブ を収めるための高さ。
+        let height: CGFloat = 320
         let constraint = view.heightAnchor.constraint(equalToConstant: height)
         constraint.priority = UILayoutPriority(999)
         constraint.isActive = true
         keyboardHeightConstraint = constraint
-    }
-}
-
-private struct KeyboardBasePlaceholderView: View {
-    let onInsertText: (String) -> Void
-    let onDeleteBackward: () -> Void
-
-    private let rows: [[String]] = [
-        ["あ", "か", "さ", "た", "な", "は", "ま", "や", "ら", "わ"],
-        ["い", "き", "し", "ち", "に", "ひ", "み", "り", "を"],
-        ["う", "く", "す", "つ", "ぬ", "ふ", "む", "ゆ", "る", "ん"]
-    ]
-
-    var body: some View {
-        VStack(spacing: 8) {
-            ForEach(rows, id: \.self) { row in
-                HStack(spacing: 6) {
-                    ForEach(row, id: \.self) { key in
-                        Button(action: { onInsertText(key) }) {
-                            Text(key)
-                                .font(.system(size: 18, weight: .medium))
-                                .frame(maxWidth: .infinity, minHeight: 40)
-                                .background(Color.white)
-                                .foregroundStyle(.primary)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-
-            HStack(spacing: 6) {
-                Button(action: { onInsertText(" ") }) {
-                    Text("スペース")
-                        .font(.system(size: 16, weight: .semibold))
-                        .frame(maxWidth: .infinity, minHeight: 42)
-                        .background(Color.white)
-                        .foregroundStyle(.primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .buttonStyle(.plain)
-
-                Button(action: { onInsertText("\n") }) {
-                    Text("改行")
-                        .font(.system(size: 16, weight: .semibold))
-                        .frame(maxWidth: .infinity, minHeight: 42)
-                        .background(Color.white)
-                        .foregroundStyle(.primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .buttonStyle(.plain)
-
-                Button(action: onDeleteBackward) {
-                    Text("⌫")
-                        .font(.system(size: 18, weight: .semibold))
-                        .frame(width: 56, height: 42)
-                        .background(Color.white)
-                        .foregroundStyle(.primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(8)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color(white: 0.9))
     }
 }
 #endif
