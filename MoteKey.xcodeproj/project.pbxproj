@@ -20,6 +20,7 @@
 		404CD1971D4F4AC34E02D0EE /* ScreenCaptureStarter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3628AA8A121A407A4BCC2538 /* ScreenCaptureStarter.swift */; };
 		52FE37386B528BC44C86BE23 /* GeminiPromptFactory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 001DE8F8F2EE27E447BF42FC /* GeminiPromptFactory.swift */; };
 		574746A1651C0E87835CE848 /* S004PermissionGuideView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1232E27569BFD411266C82A4 /* S004PermissionGuideView.swift */; };
+		5B73578457BA426E03046D9B /* BroadcastPickerButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FEA18218BC017EEA87CFF06 /* BroadcastPickerButton.swift */; };
 		5C18EE2A9C85531AC6C777CA /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C7BEB7BA3149C72243CBB355 /* Assets.xcassets */; };
 		5FABC3DE462222197EDAECCB /* MoteKeyShared in Frameworks */ = {isa = PBXBuildFile; productRef = 6B188CDC61214F635700A834 /* MoteKeyShared */; };
 		5FACBDD280BBA13DB1986FA8 /* HostCopy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 05398030D640614AC87A7013 /* HostCopy.swift */; };
@@ -121,6 +122,7 @@
 		767B25ECAE4C11BE470D3B6D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		7B120FFAAC5AFC2A8A10199D /* GeminiKeyboardRuntimeService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeminiKeyboardRuntimeService.swift; sourceTree = "<group>"; };
 		7DD730737AC471A03359C87B /* LoadingVeilView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingVeilView.swift; sourceTree = "<group>"; };
+		7FEA18218BC017EEA87CFF06 /* BroadcastPickerButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BroadcastPickerButton.swift; sourceTree = "<group>"; };
 		8B91D0177F95008793BEF8BF /* KeyboardRuntimeDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimeDependencies.swift; sourceTree = "<group>"; };
 		8DB18FE7D6AE7C422C81FEE6 /* BottomActionBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BottomActionBarView.swift; sourceTree = "<group>"; };
 		93EA651B4D355D9939C9C0AE /* KeyboardRuntimePreview.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardRuntimePreview.swift; sourceTree = "<group>"; };
@@ -202,6 +204,7 @@
 		120B471F3B24E1C3C92221A7 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				7FEA18218BC017EEA87CFF06 /* BroadcastPickerButton.swift */,
 				50FFE20D281819CE2A6E0C5E /* CheckmarkAnimationView.swift */,
 				FFD0884B9EC66DEBF0C0D586 /* HostHaptics.swift */,
 				14D64110A80A33208DAB1DC4 /* MonthDayPicker.swift */,
@@ -518,6 +521,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D336A21871EE18E987D25830 /* AppGroupStore.swift in Sources */,
+				5B73578457BA426E03046D9B /* BroadcastPickerButton.swift in Sources */,
 				C903EF962E087C1DD9A2C073 /* CheckmarkAnimationView.swift in Sources */,
 				131A24937C4AB4390ADA4257 /* GeminiTextHabitAnalyzer.swift in Sources */,
 				B6E1E5A613C17E47B8016AB5 /* HostAppState.swift in Sources */,

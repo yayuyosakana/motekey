@@ -17,7 +17,6 @@ struct S004PermissionGuideView: View {
     @State private var hasReturnedFromSettings = false
     @State private var didOpenSystemSettings = false
     private let recordingStatusTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
-    private let broadcastPickerTag = 0x4D4F5445 // "MOTE"
 
     var body: some View {
         ScrollView {
@@ -76,10 +75,21 @@ struct S004PermissionGuideView: View {
                 }
                 .foregroundStyle(.secondary)
 
-                Button(HostCopy.S004.startRecordingButton) {
-                    startScreenRecordingFromApp()
+#if canImport(ReplayKit)
+                HStack(spacing: 12) {
+                    BroadcastPickerButton(preferredExtension: "com.motekey.app.broadcast")
+                        .frame(width: 60, height: 60)
+                        .background(Color.pink.opacity(0.12))
+                        .clipShape(Circle())
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(HostCopy.S004.startRecordingButton)
+                            .font(.subheadline.bold())
+                        Text("上のボタンをタップ → 「ブロードキャストを開始」を選ぶと録画が始まります")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                .buttonStyle(.borderedProminent)
+#endif
 
                 Text(isScreenRecordingActive
                      ? HostCopy.S004.recordingStatusActive
@@ -171,35 +181,6 @@ struct S004PermissionGuideView: View {
         }
     }
 
-    private func startScreenRecordingFromApp() {
-#if canImport(UIKit) && canImport(ReplayKit)
-        guard let windowScene = UIApplication.shared.connectedScenes
-            .compactMap({ $0 as? UIWindowScene })
-            .first,
-              let hostView = windowScene.windows.first(where: \.isKeyWindow)?.rootViewController?.view else {
-            return
-        }
-
-        let picker: RPSystemBroadcastPickerView
-        if let existing = hostView.viewWithTag(broadcastPickerTag) as? RPSystemBroadcastPickerView {
-            picker = existing
-        } else {
-            picker = RPSystemBroadcastPickerView(frame: CGRect(x: -1000, y: -1000, width: 1, height: 1))
-            picker.tag = broadcastPickerTag
-            hostView.addSubview(picker)
-        }
-
-        picker.preferredExtension = "com.motekey.app.broadcast"
-        picker.showsMicrophoneButton = false
-        hostView.layoutIfNeeded()
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            if let button = picker.subviews.compactMap({ $0 as? UIButton }).first {
-                button.sendActions(for: .touchUpInside)
-            }
-        }
-#endif
-    }
 }
 
 struct S004CompleteView: View {
